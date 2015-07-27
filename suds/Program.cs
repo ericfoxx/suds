@@ -45,7 +45,11 @@ namespace suds
 
             currentRoom = testRoom;
 
+            startingArea.Rooms = new List<Room>();
             startingArea.Rooms.AddRange(new List<Room>{testRoom, otherRoom});
+            startingArea.CurrentRoom = testRoom;
+            startingArea.ContainsPlayer = true;
+            startingArea.IsLoaded = true;
 
             currentRoom.Describe();
 

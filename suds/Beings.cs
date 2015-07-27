@@ -39,9 +39,9 @@ namespace suds
             Name = name;
         }
 
-        void Describe()
+        public void Describe()
         {
-            ///TODO: Describe player
+            "You are handsome and rugged.".Color(suds.Normal);
         }
     }
 

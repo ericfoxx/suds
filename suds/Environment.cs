@@ -74,7 +74,7 @@ namespace suds
             exits += (Down != null) ? "Down " : "";
             exits.Color(suds.Normal);
 
-            mobs.ForEach(m => m.Describe());
+            if (mobs != null) mobs.ForEach(m => m.Describe());
 
             ///TODO: Describe items in Room
 

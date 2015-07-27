@@ -114,7 +114,25 @@ namespace suds
             //FindObject(args, area);
 
             //FOR NOW, just make it work for descriptions
+            var objs = GetDescribables(area);
+            objs.ForEach(d => d.Describe());
         }
+
+        private static List<IDescribable> GetDescribables(Area area)
+        {
+            var areaType = area.GetType();
+            var areaProps = areaType.GetProperties().ToList();
+            return (from p in areaProps
+                    where p is IDescribable
+                    select (IDescribable)p.GetValue(area)).ToList();
+            //describableObjs.ForEach(o => o.Describe());
+            
+        }
+
+        //private void GetListOfDescs<Object>(List<Object> objects, out IList<IDescribable> objs) where Object : IDescribable
+        //{
+        //    objects = (from o in objects.OfType<IDescribable>() where o is IDescribable select (IDescribable)o).ToList();
+        //}
 
         private static void FindObject(string args, Area area)
         {

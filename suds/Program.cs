@@ -30,7 +30,7 @@ namespace suds
             if (player.Occupation.CanSmash()) Console.WriteLine("You can smash opponents, dealing extra damage!");
 
             ///TODO: move world init code to Runtime
-            var startingArea = new Area("Starting Area");
+            var startingArea = new Area("Starting Area", "This is the area the player starts in.");
 
             Room currentRoom;
             

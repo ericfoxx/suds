@@ -128,16 +128,18 @@ namespace suds
     {
         public int ID { get; set; }
         public string Name { get; set; }
+        public string Description { get; set; }
         public bool IsLoaded { get; set; }
         public List<Room> Rooms { get; set; }
         public bool ContainsPlayer { get; set; }
         public Room CurrentRoom { get; set; }
 
-        public Area(string name)
+        public Area(string name, string description)
         {
             ID = suds.NextAreaID;
             suds.NextAreaID++;
             Name = name;
+            Description = description;
 
             IsLoaded = ContainsPlayer = false;
         }
@@ -150,7 +152,7 @@ namespace suds
 
         public void Describe()
         {
-            ///TODO: Describe area
+            String.Format("{0}: {1}",Name,Description).Color(suds.Normal);
         }
     }
 }

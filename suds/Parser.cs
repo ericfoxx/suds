@@ -114,20 +114,23 @@ namespace suds
             //FindObject(args, area);
 
             //FOR NOW, just make it work for descriptions
-            var objs = GetDescribables(area);
-            objs.ForEach(d => d.Describe());
+            if (Regex.IsMatch(args, @"^m(e)?", RegexOptions.IgnoreCase)) area.CurrentRoom.player.Describe();
+            
+            ///TODO: Find way to match mob names on describe
+            //area.CurrentRoom.mobs.ForEach(m => m.Describe());
+            if (args.Equals("area",StringComparison.InvariantCultureIgnoreCase)) area.Describe();
         }
 
-        private static List<IDescribable> GetDescribables(Area area)
-        {
-            var areaType = area.GetType();
-            var areaProps = areaType.GetProperties().ToList();
-            return (from p in areaProps
-                    where p is IDescribable
-                    select (IDescribable)p.GetValue(area)).ToList();
+        //private static List<IDescribable> GetDescribables(Area area)
+        //{
+        //    var areaType = area.GetType();
+        //    var areaProps = areaType.GetProperties().ToList();
+        //    return (from p in areaProps
+        //            where p is IDescribable
+        //            select (IDescribable)p.GetValue(area)).ToList();
             //describableObjs.ForEach(o => o.Describe());
-            
-        }
+            ///BUG: I don't think GetDescribables is returning anything b/c the props themselves are indirect: classes that inherit IDescribable.
+        //}
 
         //private void GetListOfDescs<Object>(List<Object> objects, out IList<IDescribable> objs) where Object : IDescribable
         //{

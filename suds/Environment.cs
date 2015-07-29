@@ -117,11 +117,57 @@ namespace suds
         }
     }
 
-    public class Encounter
+    public static class Combat
     {
-        public Player player { get; set; }
-        public List<IMob> mobs { get; set; }
+        public static void AttackWithoutTarget(Room room)
+        {
+            room.player.CurrentTarget = (from m in room.mobs
+                        where m.GetIsDead() == false
+                        orderby m.GetStatBlock().Health
+                        select m).First();
+        }
 
+        public static void AttackMob(Room room)
+        {
+            var player = room.player;
+            var playerStats = player.Stats;
+            var target = room.player.CurrentTarget;
+            var targetStats = target.GetStatBlock();
+            //roll for damage
+            var playerAttack = playerStats.PhysicalAttack;
+            var targetDef = targetStats.PhysicalDefense;
+            ///TODO: implement magical attacks
+            var roll = Dice.RollRange(1, playerStats.PhysicalAttack);
+            if (roll > targetDef)
+            {
+                //hit! Compute damage (usually based on weapon and skill)
+                var dmg = Dice.RollRange(1, 4);
+                ///TODO: roll critical after hit
+
+                //apply damage to mob
+                target.TakeDamage(dmg, false);
+                
+                //check mob life
+                var h = target.GetStatBlock().Health;
+                var mh = targetStats.MaxHealth;
+                if (h <= 0)
+                {
+                    target.Die((h >= (-0.5 * mh ) ? true : false), room);
+                    player.XP += target.GrantXP(false);
+                }
+            }
+            else
+            {
+                String.Format("You miss. ({0} vs {1}", roll, targetDef).Color(suds.Error);
+            }
+
+            
+        }
+
+        public static void MobAttackPlayer()
+        {
+
+        }
     }
 
     public class Area : IDescribable

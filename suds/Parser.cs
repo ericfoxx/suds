@@ -94,15 +94,49 @@ namespace suds
                 case 'l':
                     LookAt(args, area);
                     break;
-                case 'a':
-                case 'i':
                 case 'm':
+                    LookAt("me", area);
+                    ///TODO: more 'me' description options
+                    break;
                 case 'h':
+                    Help();
+                    break;
+                case 'a':
+                    Attack(args, area.CurrentRoom);
+                    break;
+                case 'i':
                 default:
                     "Not implemented yet. Good job picking though!".Color(suds.Error);
                     break;
             }
         }
+
+        private static void Attack(string args, Room room)
+        {
+            var p = room.player;
+            var t = p.CurrentTarget;
+            ///TODO: process Attack args
+            if (t != null)
+            {
+                if (t.GetIsDead())
+                {
+                    Combat.AttackWithoutTarget(room);
+                }
+                
+
+            }
+            else
+            {
+                Combat.AttackWithoutTarget(room);
+            }
+            if (t != null)
+            {
+                Combat.AttackMob(room);
+            }
+            else "There is nothing to attack here.".Color(suds.Error);
+        }
+
+        
 
         private static void LookAt(string args, Area area)
         {
@@ -140,6 +174,11 @@ namespace suds
         private static void FindObject(string args, Area area)
         {
             ///TODO: find scalable way to find objects and perform actions upon them
+        }
+
+        private static void Help()
+        {
+            "This is where the help will go when I get around to it, and can make it more than 1,000 writeLines.".Color(suds.Normal);
         }
     }
 }

@@ -26,7 +26,7 @@ namespace suds
             //choose occupation
             //var occs = new List<string> { "Adventurer", "Monk", "Sorceror", "Warrior" };
             //player.Occupation = occs["What is your occupation?".Choose(occs)];
-            Console.WriteLine("Hello, {0}! You are a {1} with {2} Strength.", player.Name, player.Occupation.SayOccName(), player.Strength);
+            Console.WriteLine("Hello, {0}! You are a {1} with {2} Strength.", player.Name, player.Occupation.SayOccName(), player.Stats.Strength);
             if (player.Occupation.CanSmash()) Console.WriteLine("You can smash opponents, dealing extra damage!");
 
             ///TODO: move world init code to Runtime
@@ -110,19 +110,19 @@ namespace suds
 
         public static string Prompt(Player player)
         {
-            var health = player.Health / (float) player.MaxHealth;
+            var health = player.Stats.Health / (float) player.Stats.MaxHealth;
             //12345678901234567890123456789012345678901234567890123456789012345678901234567890
             //<PlayerNameXXXX>-HP:HHH/MMM-SK:XXXX-GP:XXXXXXX-
             "<".Color(suds.Normal, false);
             String.Format("{0,15}", player.Name).Color(suds.Fancy, false);
             String.Format(">-HP:").Color(suds.Normal, false);
-            String.Format("{0:D3}",player.Health).Color(
+            String.Format("{0:D3}",player.Stats.Health).Color(
                 (health <= 0.5) 
                 ? (health <= 0.2) ? suds.Death 
                     : suds.Alert
                 : suds.Normal
                 , false);
-            String.Format("/{0:D3}-GP:",player.MaxHealth).Color(suds.Normal, false);
+            String.Format("/{0:D3}-GP:",player.Stats.MaxHealth).Color(suds.Normal, false);
             String.Format("{0:D7}", player.Gold).Color(suds.Loot);
 
             return "> ".Ask();

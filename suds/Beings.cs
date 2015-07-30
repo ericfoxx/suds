@@ -60,6 +60,15 @@ namespace suds
             SkillRefreshChance = Intellect / 2;
             LifeSteal = Spirit / 2;
         }
+
+        public void Display()
+        {
+            String.Format("Health:       {0,6}/{1,6}", Health.ToString(), MaxHealth.ToString()).Color(suds.Normal);
+            String.Format("Strength:      {0,4} | Dexterity:  {1,4} | Physical Attack:  {2,4}", Strength.ToString(), Dexterity.ToString(), PhysicalAttack.ToString()).Color(suds.Normal);
+            String.Format("Stun:          {0,4} | Dodge:      {1,4} | Physical Defense: {2,4}", StunChance.ToString(), DodgeChance.ToString(), PhysicalDefense.ToString()).Color(suds.Normal);
+            String.Format("Intellect:     {0,4} | Spirit:     {1,4} | Magical Attack:   {2,4}", Intellect.ToString(), Spirit.ToString(), MagicAttack.ToString()).Color(suds.Normal);
+            String.Format("Skill Refresh: {0,4} | Life Steal: {1,4} | Magical Defense:  {2,4}", SkillRefreshChance.ToString(), LifeSteal.ToString(), MagicDefense.ToString()).Color(suds.Normal);
+        }
     }
     
     public class Player : IDescribable
@@ -101,6 +110,7 @@ namespace suds
         public void Describe()
         {
             "You are handsome and rugged.".Color(suds.Normal);
+            Stats.Display();
         }
     }
 
@@ -201,7 +211,7 @@ namespace suds
         public void Die(bool IsCritOrOverkill, Room room)
         {
             var gold = Dice.RollRange(2, 6); //2-6 gold
-            "{0} has been slain.".Color(suds.Death, false);
+            "The rat has been slain. ".Color(suds.Death, false);
             if (IsCritOrOverkill)
             {
                 "It explodes!".Color(suds.Success);

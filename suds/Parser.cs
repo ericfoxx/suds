@@ -129,7 +129,7 @@ namespace suds
             {
                 Combat.AttackWithoutTarget(room);
             }
-            if (t != null)
+            if (p.CurrentTarget != null)
             {
                 Combat.AttackMob(room);
             }

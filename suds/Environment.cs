@@ -152,13 +152,13 @@ namespace suds
                 var mh = targetStats.MaxHealth;
                 if (h <= 0)
                 {
-                    target.Die((h >= (-0.5 * mh ) ? true : false), room);
+                    target.Die((h <= (-0.5 * mh ) ? true : false), room);
                     player.XP += target.GrantXP(false);
                 }
             }
             else
             {
-                String.Format("You miss. ({0} vs {1}", roll, targetDef).Color(suds.Error);
+                String.Format("You miss. ({0} vs {1})", roll, targetDef).Color(suds.Error);
             }
 
             

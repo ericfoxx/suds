@@ -123,8 +123,10 @@ namespace suds
                 : suds.Normal
                 , false);
             String.Format("/{0:D3}-GP:",player.Stats.MaxHealth).Color(suds.Normal, false);
-            String.Format("{0:D7}", player.Gold).Color(suds.Loot);
-
+            String.Format("{0:D7}", player.Gold).Color(suds.Loot, false);
+            String.Format("-XP:").Color(suds.Normal, false);
+            String.Format("{0:D7}", player.XP).Color(suds.Fancy, false);
+            Console.WriteLine();
             return "> ".Ask();
         }
         

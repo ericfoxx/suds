@@ -20,6 +20,7 @@ namespace suds
             @"^(l)(?:ook)?(?:\s+(\w+))?",
             @"^(a)(?:ttack)?(?:\s+(\w+))?",
             @"^(i)(?:nv)?(?:\s+(\w+))?",
+            @"^(g)(?:rab|et)?(?:\s+(\w+))?",
             @"^(q)(?:uit)?",
             @"^(m)(?:e)?",
             @"^(h)(?:elp)?"
@@ -103,11 +104,29 @@ namespace suds
                     break;
                 case 'a':
                     Attack(args, area.CurrentRoom);
+                    Runtime.heartbeat = true;
+                    break;
+                case 'g':
+                    Grab(args, area);
+                    Runtime.heartbeat = true;
                     break;
                 case 'i':
                 default:
                     "Not implemented yet. Good job picking though!".Color(suds.Error);
                     break;
+            }
+        }
+
+        private static void Grab(string args, Area area)
+        {
+            ///TODO: Disambiguate null arg 'grab'
+            //for now, just grab gold
+            var gold = area.CurrentRoom.gold;
+            if (String.IsNullOrEmpty(args) && gold > 0)
+            {
+                area.CurrentRoom.player.Gold += gold;
+                area.CurrentRoom.gold = 0;
+                "You pick up the gold.".Color(suds.Loot);
             }
         }
 

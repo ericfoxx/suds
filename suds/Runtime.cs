@@ -19,12 +19,14 @@ namespace suds
         public static string input { get; set; }
         public static Player Hero { get; set; }
         public static List<Area> Areas { get; set; }
+        public static bool heartbeat { get; set; }
         
 
         static Runtime()
         {
             quit = false;
             input = "";
+            heartbeat = false;
 
             ///TODO: Manage player/world saving and loading
 
@@ -73,7 +75,7 @@ namespace suds
 
                 //mutate world
                 //for example, combat, health regen, etc.
-                if (currentArea.CurrentRoom.GetAnyHostiles())
+                if (heartbeat && currentArea.CurrentRoom.GetAnyHostiles())
                 {
                     Combat.MobsAttackPlayer(currentArea.CurrentRoom);
                 }
@@ -82,7 +84,7 @@ namespace suds
                 if (Hero.Stats.Health <= 0) Hero.Die("You have been slain.");
                 //save state?
 
-
+                heartbeat = false;
             }
         }
 

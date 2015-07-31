@@ -8,13 +8,16 @@ namespace suds
     //interface IItem
     //{
     //    string Name;
+    //    string Description;
     //    int Value;
-    //    int BaseDmg;
+    //    int BaseAttack; - better in IWeapon interface?
     //    bool IsRare;
-    //    bool CanWeild;
-    //    bool IsTwoHanded;
-    //    bool IsConsumable;
-    //    int HealValue;
-    //    bool WarriorCanUse;
+    //    bool CanUse; - redundant with ItemType?
+    //    bool IsTwoHanded; - redundant with WType?
+    //    bool IsConsumable; - redundant with ItemType?
+    //    int HealValue; - better as IConsumable interface?
+    //    ItemType Type;
+    //    WeaponType WType; - better as IWeapon interface?
+    //    
     //}
 }

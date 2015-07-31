@@ -78,7 +78,7 @@ namespace suds
 
             ///TODO: Describe items in Room
 
-            String.Format("There is {0} gold on the floor.", gold).Color(suds.Loot);
+            if (gold > 0) String.Format("There is {0} gold on the floor.", gold).Color(suds.Loot);
 
             if (!Described) Described = true;
         }

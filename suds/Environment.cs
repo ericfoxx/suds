@@ -115,16 +115,28 @@ namespace suds
                     break;
             }
         }
+
+        public bool GetAnyHostiles()
+        {
+            if (mobs == null) return false;
+            var anyHostiles = mobs.Any(m => m.GetIsHostile());
+            return anyHostiles;
+        }
     }
 
     public static class Combat
     {
         public static void AttackWithoutTarget(Room room)
         {
-            room.player.CurrentTarget = (from m in room.mobs
-                        where m.GetIsDead() == false
-                        orderby m.GetStatBlock().Health
-                        select m).First();
+            if (room.mobs != null && !room.mobs.All(m => m.GetIsDead()))
+            {
+                room.player.CurrentTarget = (from m in room.mobs
+                                             where m.GetIsDead() == false
+                                             orderby m.GetStatBlock().Health
+                                             select m).First();
+            }
+            else
+                room.player.CurrentTarget = null;
         }
 
         public static void AttackMob(Room room)
@@ -154,7 +166,9 @@ namespace suds
                 {
                     target.Die((h <= (-0.5 * mh ) ? true : false), room);
                     player.XP += target.GrantXP(false);
+                    target.SetIsHostile(false);
                 }
+                else if (!target.GetIsHostile()) target.SetIsHostile(true);
             }
             else
             {
@@ -164,9 +178,30 @@ namespace suds
             
         }
 
-        public static void MobAttackPlayer()
+        public static void MobsAttackPlayer(Room room)
         {
-
+            var p = room.player;
+            var pDef = p.Stats.PhysicalDefense;
+            int i, cnt, mAtt;
+            for (i = 0, cnt = room.mobs.Count; i < cnt; i++)
+            {
+                if (room.mobs[i].GetIsHostile())
+                {
+                    String.Format("{0} attacks you. ", room.mobs[i].GetName()).Color(suds.Error, false);
+                    mAtt = room.mobs[i].GetStatBlock().PhysicalAttack;
+                    if (Dice.RollRange(1,mAtt) > pDef)
+                    {
+                        var dmg = Dice.RollRange(1, 3);
+                        p.Stats.Health -= dmg;
+                        "The attack hits!".Color(suds.Error);
+                        if (p.Stats.Health <= 0) p.Die(String.Format("You have been slain by {0}.", room.mobs[i].GetName()));
+                    }
+                    else
+                    {
+                        "The attack misses!".Color(suds.Normal);
+                    }
+                }
+            }
         }
     }
 
@@ -192,7 +227,9 @@ namespace suds
 
         public void Travel(Room targetRoom)
         {
+            var player = CurrentRoom.player;
             CurrentRoom = targetRoom;
+            CurrentRoom.player = player;
             CurrentRoom.Describe();
         }
 

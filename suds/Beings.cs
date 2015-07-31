@@ -112,6 +112,12 @@ namespace suds
             "You are handsome and rugged.".Color(suds.Normal);
             Stats.Display();
         }
+
+        public void Die(string p)
+        {
+            p.Color(suds.Death);
+            suds.Quit();
+        }
     }
 
     public interface IOccupation
@@ -152,6 +158,7 @@ namespace suds
         int GrantXP(bool IsCrit);
         StatBlock GetStatBlock();
         bool GetIsHostile();
+        void SetIsHostile(bool flag);
         bool GetIsDead();
     }
 
@@ -204,8 +211,11 @@ namespace suds
         public void TakeDamage(int damage, bool IsCrit)
         {
             Stats.Health -= damage;
-            if (IsCrit) "You deliver a powerful blow!".Color(suds.Alert, false);
-            String.Format("{0} recoils in pain.", this.Name).Color(suds.Normal);
+            if (IsCrit) "You deliver a powerful blow! ".Color(suds.Alert, false);
+            String.Format("{0} recoils in pain. ", this.Name).Color(suds.Normal, false);
+            if (Stats.Health / (float)Stats.MaxHealth <= 0.5) "It looks bloodied.".Color(suds.Alert, false);
+            else if (Stats.Health / (float)Stats.MaxHealth <= 0.2) "It's near death!".Color(suds.Error, false);
+            Console.WriteLine();
         }
 
         public void Die(bool IsCritOrOverkill, Room room)
@@ -224,6 +234,7 @@ namespace suds
             String.Format("The rat drops {0} gold.",gold).Color(suds.Loot);
             room.gold += gold;
             IsDead = true;
+            IsHostile = false;
         }
 
         public StatBlock GetStatBlock()
@@ -239,6 +250,11 @@ namespace suds
         public bool GetIsHostile()
         {
             return IsHostile;
+        }
+
+        public void SetIsHostile(bool flag)
+        {
+            IsHostile = flag;
         }
 
         public bool GetIsDead()

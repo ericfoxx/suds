@@ -11,65 +11,13 @@ namespace suds
     {
         static void Main(string[] args)
         {
+            
             //Init
-            var quit = false;
-            var input = "";
-
-            var player = new Player();
-            
-            var welcome = "Welcome to the Single-User Dungeon System (SUDS).";
-            Console.WriteLine(welcome);
-
-            while (input.Length < 1 || input.Length > 15)
-                input = "What is your name?".Ask();
-            player.Name = input;
-            //choose occupation
-            //var occs = new List<string> { "Adventurer", "Monk", "Sorceror", "Warrior" };
-            //player.Occupation = occs["What is your occupation?".Choose(occs)];
-            Console.WriteLine("Hello, {0}! You are a {1} with {2} Strength.", player.Name, player.Occupation.SayOccName(), player.Stats.Strength);
-            if (player.Occupation.CanSmash()) Console.WriteLine("You can smash opponents, dealing extra damage!");
-
-            ///TODO: move world init code to Runtime
-            var startingArea = new Area("Starting Area", "This is the area the player starts in.");
-
-            Room currentRoom;
-            
-            //test room
-            var testRoom = new Room("Test Room", "This is the room you start in. It looks very normal.");
-            testRoom.gold = 2;
-            var rat = new Rat();
-            testRoom.mobs = new List<IMob>{rat};
-            testRoom.player = player;
-
-            var otherRoom = new Room("Other Room", "This is the other one.", null, null, testRoom, null, null, null);
-
-            currentRoom = testRoom;
-
-            startingArea.Rooms = new List<Room>();
-            startingArea.Rooms.AddRange(new List<Room>{testRoom, otherRoom});
-            startingArea.CurrentRoom = testRoom;
-            startingArea.ContainsPlayer = true;
-            startingArea.IsLoaded = true;
-
-            currentRoom.Describe();
+            Runtime.Init();
 
             //MAIN LOOP
-            while (!quit)
-            {
-                //prompt (including writing the player bar)
-                input = suds.Prompt(player);
-                //parse input
-                if (!Parser.Parse(input, startingArea))
-                {
-                    "Sorry, I can't understand that.".Color(suds.Error);
-                }
 
-                //mutate world
-                //for example, combat, health regen, etc.
-
-                //save state?
-            }
-
+            Runtime.MainLoop();
 
 
             suds.Quit();
@@ -108,8 +56,9 @@ namespace suds
         public static int NextAreaID = 0;
         public static int NextItemID = 0;
 
-        public static string Prompt(Player player)
+        public static string Prompt(Room room)
         {
+            var player = room.player;
             var health = player.Stats.Health / (float) player.Stats.MaxHealth;
             //12345678901234567890123456789012345678901234567890123456789012345678901234567890
             //<PlayerNameXXXX>-HP:HHH/MMM-SK:XXXX-GP:XXXXXXX-
@@ -127,12 +76,13 @@ namespace suds
             String.Format("-XP:").Color(suds.Normal, false);
             String.Format("{0:D7}", player.XP).Color(suds.Fancy, false);
             Console.WriteLine();
-            return "> ".Ask();
+            if (room.GetAnyHostiles()) return "!> ".Ask(suds.Alert, false);
+            return ">> ".Ask(suds.Normal, false);
         }
         
-        public static string Ask(this string promptText)
+        public static string Ask(this string promptText, ConsoleColor color, bool EOL = true)
         {
-            Console.Write(promptText + " ");
+            String.Format("{0} ", promptText).Color(color, EOL);
             return Console.ReadLine();
         }
 

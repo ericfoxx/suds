@@ -18,6 +18,7 @@ namespace suds
         private static bool quit { get; set; }
         public static string input { get; set; }
         public static Player Hero { get; set; }
+        public static List<Skill> Skills { get; set; }
         public static List<Area> Areas { get; set; }
         public static bool heartbeat { get; set; }
         
@@ -39,6 +40,9 @@ namespace suds
             ///TODO: Choose occupation
             String.Format("Hello, {0}! You are a {1} with {2} Strength.", Hero.Name, Hero.Occupation.SayOccName(), Hero.Stats.Strength).Color(suds.Normal);
             if (Hero.Occupation.CanSmash()) "You can smash opponents!".Color(suds.Normal);
+
+            //Skills
+            InitSkills();
 
             Areas = new List<Area>();
 
@@ -109,6 +113,76 @@ namespace suds
             Areas.Add(startingArea);
 
             startingRoom.Describe();
+        }
+
+        internal static void InitSkills()
+        {
+            var skills = new List<Skill>{
+                new Skill{
+                    Name = "Bash", ShortName = "BASH ",
+                    Description = "A powerful strike with a greater stun chance.",
+                    SkillSound = "You execute a powerful bash!",
+                    Modifiers = {
+                        PhyAtk = 5,
+                        Dmg = 5,
+                        StunChance = 5,
+                        StunDuration = 1                        
+                    }
+                },
+                new Skill{
+                    Name = "CorpseShield", ShortName = "CORSH",
+                    Description = "Use a corpse in the room to increase your defenses.",
+                    SkillSound = "You throw a corpse over your shoulder for protection. Yuck.",
+                    Modifiers = {
+                        PhyDef = 25,
+                        MagDef = 25,
+                        Resist = 5
+                    }
+                },
+                new Skill{
+                    Name = "BodySlam", ShortName = "BSLAM",
+                    Description = "A huge slam that targets the entire room.",
+                    SkillSound = "The whole room shakes with your huge body slam!",
+                    Modifiers = {
+                        PhyAtk = 50,
+                        Dmg = 100,
+                        StunChance = 20,
+                        StunDuration = 2
+                    }
+                },
+                new Skill{
+                    Name = "TrueStrike", ShortName = "TRUES",
+                    Description = "A cunning lunge that delivers incredible damage.",
+                    SkillSound = "You surge forward, wreathed in power, delivering the True Strike!",
+                    Modifiers = {
+                        PhyAtk = 125,
+                        PhyAtkPct = 0.25M,
+                        Dmg = 500,
+                        DmgPct = 0.5M,
+                        StunChancePct = .1M,
+                        StunDurationPct = .5M
+                    }
+                },
+                new Skill{
+                    Name = "AlphaForm", ShortName = "ALPHA",
+                    Description = "A cataclysm of physical prowess!",
+                    SkillSound = "You deliver death to all as you assume the ALPHA FORM!",
+                    Modifiers = {
+                        PhyAtk = 500,
+                        PhyAtkPct = 0.5M,
+                        Dmg = 1250,
+                        DmgPct = 1.0M,
+                        StunChancePct = .2M,
+                        StunDurationPct = 1.0M
+                    }
+                }
+            };
+            Skills = skills;
+            
+            //init our warrior with Bash.
+            var bash = Skills.First(s => s.ShortName == "BASH");
+            Hero.Skills.Add(bash);
+            Hero.Skill1 = bash;
         }
     }
 

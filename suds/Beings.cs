@@ -74,16 +74,16 @@ namespace suds
     public class Player : IDescribable
     {
         public string Name { get; set; }
-
         public IOccupation Occupation { get; set; }
-
         public StatBlock Stats { get; set; }
-
         public IMob CurrentTarget { get; set; }
-
         public int XP { get; set; }
-
         public int Gold { get; set; }
+        public List<Skill> Skills { get; set; }
+        public Skill Skill1 { get; set; }
+        public Skill Skill2 { get; set; }
+        public Skill Skill3 { get; set; }
+        public Skill Skill4 { get; set; }
 
         public Player()
         {
@@ -99,6 +99,8 @@ namespace suds
             XP = 0;
 
             CurrentTarget = null;
+
+            Skills = new List<Skill>();
         }
 
         public Player(string name)
@@ -109,7 +111,7 @@ namespace suds
 
         public void Describe()
         {
-            "You are handsome and rugged.".Color(suds.Normal);
+            "You are a fearsome warrior!".Color(suds.Normal);
             Stats.Display();
         }
 
@@ -117,6 +119,26 @@ namespace suds
         {
             p.Color(suds.Death);
             suds.Quit();
+        }
+
+        public void UseSkill1(Area area)
+        {
+            "Hi-ya!".Color(suds.Normal);
+        }
+
+        public void UseSkill2(Area area)
+        {
+            "Wa-chow!".Color(suds.Normal);
+        }
+
+        public void UseSkill3(Area area)
+        {
+            "You perform a spinning roundhouse!".Color(suds.Normal);
+        }
+
+        public void UseSkill4(Area area)
+        {
+            "You flip the table over. Wow!".Color(suds.Normal);
         }
     }
 

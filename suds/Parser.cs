@@ -23,7 +23,11 @@ namespace suds
             @"^(g)(?:rab|et)?(?:\s+(\w+))?",
             @"^(q)(?:uit)?",
             @"^(m)(?:e)?",
-            @"^(h)(?:elp)?"
+            @"^(h)(?:elp)?",
+            @"^(1)",
+            @"^(2)",
+            @"^(3)",
+            @"^(4)"
         };
         
         public static bool Parse(this string input, Area area) ///TODO: Parse - area
@@ -110,7 +114,19 @@ namespace suds
                     Grab(args, area);
                     Runtime.heartbeat = true;
                     break;
-                case 'i':
+                case '1':
+                    area.CurrentRoom.player.UseSkill1(area);
+                    break;
+                case '2':
+                    area.CurrentRoom.player.UseSkill2(area);
+                    break;
+                case '3':
+                    area.CurrentRoom.player.UseSkill3(area);
+                    break;
+                case '4':
+                    area.CurrentRoom.player.UseSkill4(area);
+                    break;
+                case 'i': ///TODO: Parser - Implement inventory case
                 default:
                     "Not implemented yet. Good job picking though!".Color(suds.Error);
                     break;
@@ -197,6 +213,7 @@ namespace suds
 
         private static void Help()
         {
+            ///TODO: Move Help to its own class.
             "This is where the help will go when I get around to it, and can make it more than 1,000 writeLines.".Color(suds.Normal);
         }
     }

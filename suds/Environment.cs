@@ -126,8 +126,9 @@ namespace suds
 
     public static class Combat
     {
-        public static void AttackWithoutTarget(Room room)
+        public static void GetTarget()
         {
+            var room = Runtime.CurrentArea.CurrentRoom;
             if (room.mobs != null && !room.mobs.All(m => m.GetIsDead()))
             {
                 room.player.CurrentTarget = (from m in room.mobs
@@ -136,25 +137,45 @@ namespace suds
                                              select m).First();
             }
             else
-                room.player.CurrentTarget = null;
+                Runtime.Hero.CurrentTarget = null;
         }
 
-        public static void AttackMob(Room room)
+        public static void AttackMob(Skill skill = null)
         {
-            var player = room.player;
+            var player = Runtime.Hero;
             var playerStats = player.Stats;
-            var target = room.player.CurrentTarget;
-            var targetStats = target.GetStatBlock();
-            //roll for damage
             var playerAttack = playerStats.PhysicalAttack;
+            
+            var target = Runtime.Hero.CurrentTarget;
+            var targetStats = target.GetStatBlock();
             var targetDef = targetStats.PhysicalDefense;
+            
+            //TODO: apply weapon and passive skill/xp-grid-buff dmgMods to dmgMod as well
+            var dmgMod = 0;
+
+            //apply skill effects
+            if (skill != null)
+            {
+                var mods = skill.Modifiers;
+                //say what it does
+                String.Format("{0} ", skill.Sound).Color(suds.Normal, false);
+                playerAttack += mods.PhyAtk;
+                playerAttack.PctMod(mods.PhyAtkPct); // (from suds.PctMod extension method)
+                dmgMod += mods.Dmg;
+                dmgMod.PctMod(mods.DmgPct);
+            }
+            //roll for damage
             ///TODO: implement magical attacks
-            var roll = Dice.RollRange(1, playerStats.PhysicalAttack);
+            String.Format("(pAtk:{0} tDef:{1}) ", playerAttack, targetDef).Color(suds.Normal, false);
+            var roll = Dice.RollRange(1, playerAttack);
             if (roll > targetDef)
             {
                 //hit! Compute damage (usually based on weapon and skill)
-                var dmg = Dice.RollRange(1, 4);
+                var dmg = Dice.RollRange(1, roll - targetDef + dmgMod);
                 ///TODO: roll critical after hit
+
+                //crit calc
+                // roll 1-100, if < critChance, CRIT!
 
                 //apply damage to mob
                 target.TakeDamage(dmg, false);
@@ -164,7 +185,7 @@ namespace suds
                 var mh = targetStats.MaxHealth;
                 if (h <= 0)
                 {
-                    target.Die((h <= (-0.5 * mh ) ? true : false), room);
+                    target.Die((h <= (-0.5 * mh ) ? true : false));
                     player.XP += target.GrantXP(false);
                     target.SetIsHostile(false);
                 }
@@ -178,10 +199,11 @@ namespace suds
             
         }
 
-        public static void MobsAttackPlayer(Room room)
+        public static void MobsAttackPlayer()
         {
-            var p = room.player;
-            var pDef = p.Stats.PhysicalDefense;
+            var room = Runtime.CurrentArea.CurrentRoom;
+            var player = Runtime.Hero;
+            var pDef = player.Stats.PhysicalDefense;
             int i, cnt, mAtt;
             for (i = 0, cnt = room.mobs.Count; i < cnt; i++)
             {
@@ -192,9 +214,9 @@ namespace suds
                     if (Dice.RollRange(1,mAtt) > pDef)
                     {
                         var dmg = Dice.RollRange(1, 3);
-                        p.Stats.Health -= dmg;
+                        player.Stats.Health -= dmg;
                         "The attack hits!".Color(suds.Error);
-                        if (p.Stats.Health <= 0) p.Die(String.Format("You have been slain by {0}.", room.mobs[i].GetName()));
+                        if (player.Stats.Health <= 0) player.Die(String.Format("You have been slain by {0}.", room.mobs[i].GetName()));
                     }
                     else
                     {

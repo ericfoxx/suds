@@ -50,6 +50,7 @@ namespace suds
 
         public void CalcDerivedAttributes()
         {
+            ///TODO: Make 'chance' stats logarithmic
             PhysicalAttack = PhysicalDefense = (int)Math.Ceiling((Strength + Dexterity) / 2.0);
             MagicAttack = MagicDefense = (int)Math.Ceiling((Intellect + Spirit) / 2.0);
             CriticalChance = (int)Math.Ceiling((Dexterity + Spirit) / 2.0);
@@ -121,22 +122,22 @@ namespace suds
             suds.Quit();
         }
 
-        public void UseSkill1(Area area)
+        public void UseSkill1()
         {
             "Hi-ya!".Color(suds.Normal);
         }
 
-        public void UseSkill2(Area area)
+        public void UseSkill2()
         {
             "Wa-chow!".Color(suds.Normal);
         }
 
-        public void UseSkill3(Area area)
+        public void UseSkill3()
         {
             "You perform a spinning roundhouse!".Color(suds.Normal);
         }
 
-        public void UseSkill4(Area area)
+        public void UseSkill4()
         {
             "You flip the table over. Wow!".Color(suds.Normal);
         }
@@ -176,7 +177,7 @@ namespace suds
         void NoticePlayer();
         void MakeSound();
         void TakeDamage(int damage, bool IsCrit);
-        void Die(bool IsCritOrOverkill, Room room);
+        void Die(bool IsCritOrOverkill);
         int GrantXP(bool IsCrit);
         StatBlock GetStatBlock();
         bool GetIsHostile();
@@ -240,8 +241,9 @@ namespace suds
             Console.WriteLine();
         }
 
-        public void Die(bool IsCritOrOverkill, Room room)
+        public void Die(bool IsCritOrOverkill)
         {
+            var room = Runtime.CurrentArea.CurrentRoom;
             var gold = Dice.RollRange(2, 6); //2-6 gold
             "The rat has been slain. ".Color(suds.Death, false);
             if (IsCritOrOverkill)

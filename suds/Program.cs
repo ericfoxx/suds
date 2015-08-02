@@ -56,10 +56,10 @@ namespace suds
         public static int NextAreaID = 0;
         public static int NextItemID = 0;
 
-        public static string Prompt(Room room)
+        public static string Prompt()
         {
-            var player = room.player;
-            var health = player.Stats.Health / (float) player.Stats.MaxHealth;
+            var player = Runtime.Hero;
+            var health = player.Stats.Health / (float)player.Stats.MaxHealth;
             //12345678901234567890123456789012345678901234567890123456789012345678901234567890
             //<PlayerNameXXXX>-HP:HHH/MMM-SK:XXXX-GP:XXXXXXX-
             "<".Color(suds.Normal, false);
@@ -76,7 +76,7 @@ namespace suds
             String.Format("-XP:").Color(suds.Normal, false);
             String.Format("{0:D7}", player.XP).Color(suds.Fancy, false);
             Console.WriteLine();
-            if (room.GetAnyHostiles()) return "!> ".Ask(suds.Alert, false);
+            if (Runtime.CurrentArea.CurrentRoom.GetAnyHostiles()) return "!> ".Ask(suds.Alert, false);
             return ">> ".Ask(suds.Normal, false);
         }
         
@@ -131,6 +131,12 @@ namespace suds
             Console.WriteLine("Thank you for playing! Enjoy real life. (Press any key to exit.)");
             Console.Read();
             System.Environment.Exit(0);
+        }
+
+        public static void PctMod(this int stat, decimal pctMod)
+        {
+            if (pctMod != 0.0M)
+                stat *= (int)Math.Ceiling(1.0M + pctMod);
         }
     }
 }

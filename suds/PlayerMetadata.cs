@@ -45,7 +45,7 @@ namespace suds
         public string Name { get; set; }
         public string ShortName { get; set; }
         public string Description { get; set; }
-        public string SkillSound { get; set; }
+        public string Sound { get; set; }
 
         public CombatModifiers Modifiers { get; set; }
 
@@ -53,6 +53,5 @@ namespace suds
         {
             Modifiers = new CombatModifiers();
         }
-        
     }
 }

@@ -24,14 +24,15 @@ namespace suds
             @"^(q)(?:uit)?",
             @"^(m)(?:e)?",
             @"^(h)(?:elp)?",
-            @"^(1)",
-            @"^(2)",
-            @"^(3)",
-            @"^(4)"
+            @"^(1)(?:\s+(\w+))?",
+            @"^(2)(?:\s+(\w+))?",
+            @"^(3)(?:\s+(\w+))?",
+            @"^(4)(?:\s+(\w+))?"
         };
         
-        public static bool Parse(this string input, Area area) ///TODO: Parse - area
+        public static bool Parse(this string input) ///TODO: Parse - area
         {
+            var area = Runtime.CurrentArea;
             var command = 'x';
             string args = null;
             var cont = true;
@@ -48,13 +49,14 @@ namespace suds
                     cont = false;
                 }
             }
-            RunCommand(command, args, area);
+            RunCommand(command, args);
 
             return true;
         }
 
-        private static void RunCommand(char command, string args, Area area)
+        private static void RunCommand(char command, string args)
         {
+            var area = Runtime.CurrentArea;
             switch (command)
             {
                 case 'n':
@@ -97,34 +99,34 @@ namespace suds
                     suds.Quit();
                     break;
                 case 'l':
-                    LookAt(args, area);
+                    LookAt(args);
                     break;
                 case 'm':
-                    LookAt("me", area);
+                    LookAt("me");
                     ///TODO: more 'me' description options
                     break;
                 case 'h':
                     Help();
                     break;
                 case 'a':
-                    Attack(args, area.CurrentRoom);
+                    Attack(args);
                     Runtime.heartbeat = true;
                     break;
                 case 'g':
-                    Grab(args, area);
+                    Grab(args);
                     Runtime.heartbeat = true;
                     break;
                 case '1':
-                    area.CurrentRoom.player.UseSkill1(area);
+                    Attack(args, Runtime.Hero.Skill1);
                     break;
                 case '2':
-                    area.CurrentRoom.player.UseSkill2(area);
+                    Attack(args, Runtime.Hero.Skill2);
                     break;
                 case '3':
-                    area.CurrentRoom.player.UseSkill3(area);
+                    Attack(args, Runtime.Hero.Skill3);
                     break;
                 case '4':
-                    area.CurrentRoom.player.UseSkill4(area);
+                    Attack(args, Runtime.Hero.Skill4);
                     break;
                 case 'i': ///TODO: Parser - Implement inventory case
                 default:
@@ -133,48 +135,56 @@ namespace suds
             }
         }
 
-        private static void Grab(string args, Area area)
+        private static void Grab(string args)
         {
+            var area = Runtime.CurrentArea;
             ///TODO: Disambiguate null arg 'grab'
             //for now, just grab gold
             var gold = area.CurrentRoom.gold;
             if (String.IsNullOrEmpty(args) && gold > 0)
             {
-                area.CurrentRoom.player.Gold += gold;
-                area.CurrentRoom.gold = 0;
-                "You pick up the gold.".Color(suds.Loot);
+                if (Runtime.Hero.Gold >= 999999)
+                    "You have too much gold. Spend some!".Color(suds.Error);
+                else
+                {
+                    Runtime.Hero.Gold += gold;
+                    area.CurrentRoom.gold = 0;
+                    "You pick up the gold.".Color(suds.Loot);
+                }
             }
         }
 
-        private static void Attack(string args, Room room)
+        private static void Attack(string args, Skill skill = null)
         {
-            var p = room.player;
-            var t = p.CurrentTarget;
+            var room = Runtime.CurrentArea.CurrentRoom;
+            var player = Runtime.Hero;
+            var t = player.CurrentTarget;
             ///TODO: process Attack args
             if (t != null)
             {
                 if (t.GetIsDead())
                 {
-                    Combat.AttackWithoutTarget(room);
+                    Combat.GetTarget();
                 }
                 
 
             }
             else
             {
-                Combat.AttackWithoutTarget(room);
+                Combat.GetTarget();
             }
-            if (p.CurrentTarget != null)
+            if (player.CurrentTarget != null)
             {
-                Combat.AttackMob(room);
+                Combat.AttackMob(skill);
             }
             else "There is nothing to attack here.".Color(suds.Error);
         }
 
         
 
-        private static void LookAt(string args, Area area)
+        private static void LookAt(string args)
         {
+            var area = Runtime.CurrentArea;
             if (args == null)
             {
                 area.CurrentRoom.Describe();
@@ -206,7 +216,7 @@ namespace suds
         //    objects = (from o in objects.OfType<IDescribable>() where o is IDescribable select (IDescribable)o).ToList();
         //}
 
-        private static void FindObject(string args, Area area)
+        private static void FindObject(string args)
         {
             ///TODO: find scalable way to find objects and perform actions upon them
         }

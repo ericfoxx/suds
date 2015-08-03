@@ -166,7 +166,9 @@ namespace suds
             }
             //roll for damage
             ///TODO: implement magical attacks
+#if DEBUG
             String.Format("(pAtk:{0} tDef:{1}) ", playerAttack, targetDef).Color(suds.Normal, false);
+#endif
             var roll = Dice.RollRange(1, playerAttack);
             if (roll > targetDef)
             {
@@ -176,9 +178,18 @@ namespace suds
 
                 //crit calc
                 // roll 1-100, if < critChance, CRIT!
-
+                //(10x^0.3)/(0.2x^0.3+1)
+                var pow = Math.Pow((double)playerStats.CriticalChance,0.3);
+                var critChance = (int)Math.Floor((10 * pow)/(1 + 0.2 * pow));
+                var critRoll = Dice.RollRange(1, 100);
+                var didCrit = (critRoll <= critChance) ? true : false;
+#if DEBUG
+                String.Format("(critChance:{0} roll:{1}) ", critChance, critRoll).Color(suds.Alert, false);
+#endif
+                if (didCrit) "You deliver a powerful blow! ".Color(suds.Alert, false);
+                
                 //apply damage to mob
-                target.TakeDamage(dmg, false);
+                target.TakeDamage(dmg, didCrit);
                 
                 //check mob life
                 var h = target.GetStatBlock().Health;
@@ -186,7 +197,7 @@ namespace suds
                 if (h <= 0)
                 {
                     target.Die((h <= (-0.5 * mh ) ? true : false));
-                    player.XP += target.GrantXP(false);
+                    player.XP += target.GrantXP(didCrit);
                     target.SetIsHostile(false);
                 }
                 else if (!target.GetIsHostile()) target.SetIsHostile(true);

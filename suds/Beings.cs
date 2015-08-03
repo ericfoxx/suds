@@ -234,7 +234,6 @@ namespace suds
         public void TakeDamage(int damage, bool IsCrit)
         {
             Stats.Health -= damage;
-            if (IsCrit) "You deliver a powerful blow! ".Color(suds.Alert, false);
             String.Format("{0} recoils in pain. ", this.Name).Color(suds.Normal, false);
             if (Stats.Health / (float)Stats.MaxHealth <= 0.5) "It looks bloodied.".Color(suds.Alert, false);
             else if (Stats.Health / (float)Stats.MaxHealth <= 0.2) "It's near death!".Color(suds.Error, false);

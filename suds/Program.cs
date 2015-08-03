@@ -83,7 +83,9 @@ namespace suds
         public static string Ask(this string promptText, ConsoleColor color, bool EOL = true)
         {
             String.Format("{0} ", promptText).Color(color, EOL);
-            return Console.ReadLine();
+            var ret = Console.ReadLine();
+            if (ret == "") ret = "∟";
+            return ret;
         }
 
         public static int Choose(this string promptText, List<string> list)

@@ -34,9 +34,16 @@ namespace suds
         {
             var area = Runtime.CurrentArea;
             var command = 'x';
+            var blank = false;
             string args = null;
             var cont = true;
             //basic tests
+            //emulate previous input if ENTER pressed:
+            if (string.Equals(input, "∟"))
+            {
+                input = Runtime.prevInput;
+                blank = true;
+            }
             if (input.Length == 0 || input.Length >= 80) return false;
             //in the grammer?
             for (var idx = 0; idx < Grammar.Count() && cont; idx++)
@@ -49,6 +56,7 @@ namespace suds
                     cont = false;
                 }
             }
+            if (!blank) Runtime.prevInput = input;
             RunCommand(command, args);
 
             return true;

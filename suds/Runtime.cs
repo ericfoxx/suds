@@ -17,6 +17,7 @@ namespace suds
     {
         private static bool quit { get; set; }
         public static string input { get; set; }
+        public static string prevInput { get; set; }
         public static Player Hero { get; set; }
         public static List<Skill> Skills { get; set; }
         public static List<Area> Areas { get; set; }
@@ -27,7 +28,7 @@ namespace suds
         static Runtime()
         {
             quit = false;
-            input = "";
+            input = prevInput = "";
             heartbeat = false;
 
             ///TODO: Manage player/world saving and loading

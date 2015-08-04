@@ -11,7 +11,12 @@ namespace suds
     {
         static void Main(string[] args)
         {
-            
+            //Display-specific settings
+            Console.Clear();
+            Console.SetWindowSize(120, 40);
+            Console.BufferWidth = 120;
+            Console.BufferHeight = 40;
+
             //Init
             Runtime.Init();
 

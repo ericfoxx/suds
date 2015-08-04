@@ -77,6 +77,7 @@ namespace suds
         public string Name { get; set; }
         public IOccupation Occupation { get; set; }
         public StatBlock Stats { get; set; }
+        public Room CurrentRoom { get; set; }
         public IMob CurrentTarget { get; set; }
         public int XP { get; set; }
         public int Gold { get; set; }
@@ -192,14 +193,17 @@ namespace suds
         public StatBlock Stats { get; set; }
         public bool IsHostile { get; set; }
         public bool IsDead { get; set; }
+        public int BaseXP { get; set; }
 
         public Rat()
         {
             Name = "rat" + suds.NextMobID;
+            suds.NextMobID++;
             Stats = new StatBlock(Dice.RollRange(6,12), Dice.RollRange(3, 9), Dice.RollRange(3, 8), Dice.RollRange(3, 7), Dice.RollRange(1, 2));
             IsHostile = (Dice.RollRange(1,10) > 9) ? true : false; //10% chance 
             Description = String.Format("There is a filthy rat here ({0}).", Name);
             IsDead = false;
+            BaseXP = 2;
         }
 
         public string GetName()
@@ -247,7 +251,7 @@ namespace suds
             "The rat has been slain. ".Color(suds.Death, false);
             if (IsCritOrOverkill)
             {
-                "It explodes!".Color(suds.Success);
+                "It explodes! ".Color(suds.Success, false);
                 ///TODO: add an extra item on crit, with a better roll
                 
                 gold += 3;
@@ -267,7 +271,7 @@ namespace suds
 
         public int GrantXP(bool IsCrit)
         {
-            return (IsCrit) ? 4 : 2;
+            return BaseXP * ((IsCrit) ? 2 : 1);
         }
 
         public bool GetIsHostile()

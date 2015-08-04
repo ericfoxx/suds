@@ -196,8 +196,9 @@ namespace suds
                 var mh = targetStats.MaxHealth;
                 if (h <= 0)
                 {
-                    target.Die((h <= (-0.5 * mh ) ? true : false));
-                    player.XP += target.GrantXP(didCrit);
+                    var didCritOrOverkill = (h <= -0.5 * mh);
+                    target.Die(didCritOrOverkill);
+                    player.XP += target.GrantXP(didCritOrOverkill);
                     target.SetIsHostile(false);
                 }
                 else if (!target.GetIsHostile()) target.SetIsHostile(true);
@@ -260,9 +261,9 @@ namespace suds
 
         public void Travel(Room targetRoom)
         {
-            var player = CurrentRoom.player;
             CurrentRoom = targetRoom;
-            CurrentRoom.player = player;
+            CurrentRoom.player = Runtime.Hero;
+            Runtime.Hero.CurrentRoom = targetRoom;
             CurrentRoom.Describe();
         }
 

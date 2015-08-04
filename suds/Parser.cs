@@ -27,7 +27,8 @@ namespace suds
             @"^(1)(?:\s+(\w+))?",
             @"^(2)(?:\s+(\w+))?",
             @"^(3)(?:\s+(\w+))?",
-            @"^(4)(?:\s+(\w+))?"
+            @"^(4)(?:\s+(\w+))?",
+            @"^(!)(?:\s+(\w+))?"
         };
         
         public static bool Parse(this string input) ///TODO: Parse - area
@@ -136,6 +137,9 @@ namespace suds
                 case '4':
                     Attack(args, Runtime.Hero.Skill4);
                     break;
+                case '!':
+                    Runtime.DebugGenerate(args);
+                    break;
                 case 'i': ///TODO: Parser - Implement inventory case
                 default:
                     "Not implemented yet. Good job picking though!".Color(suds.Error);
@@ -157,7 +161,7 @@ namespace suds
                 {
                     Runtime.Hero.Gold += gold;
                     area.CurrentRoom.gold = 0;
-                    "You pick up the gold.".Color(suds.Loot);
+                    string.Format("You pick up {0} gold.", gold).Color(suds.Loot);
                 }
             }
         }
@@ -193,7 +197,7 @@ namespace suds
         private static void LookAt(string args)
         {
             var area = Runtime.CurrentArea;
-            if (args == null)
+            if (string.IsNullOrWhiteSpace(args))
             {
                 area.CurrentRoom.Describe();
                 return;
@@ -201,7 +205,7 @@ namespace suds
             //FindObject(args, area);
 
             //FOR NOW, just make it work for descriptions
-            if (Regex.IsMatch(args, @"^m(e)?", RegexOptions.IgnoreCase)) area.CurrentRoom.player.Describe();
+            if (Regex.IsMatch(args, @"^m(e)?", RegexOptions.IgnoreCase)) Runtime.Hero.Describe();
             
             ///TODO: Find way to match mob names on describe
             //area.CurrentRoom.mobs.ForEach(m => m.Describe());

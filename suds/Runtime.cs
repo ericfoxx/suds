@@ -100,6 +100,7 @@ namespace suds
             var rat = new Rat();
             startingRoom.mobs = new List<IMob> { rat };
             startingRoom.player = Hero;
+            Hero.CurrentRoom = startingRoom;
             startingArea.CurrentRoom = startingRoom;
 
             var secondRoom = new Room("Second Room", "This is the other one.");
@@ -182,6 +183,29 @@ namespace suds
             var bash = Skills.First(s => string.Equals(s.ShortName,"BASH "));
             Hero.Skills.Add(bash);
             Hero.Skill1 = bash;
+        }
+
+        internal static void DebugGenerate(string args)
+        {
+            if (string.IsNullOrWhiteSpace(args) || string.Equals(args, "rat", StringComparison.InvariantCultureIgnoreCase))
+            {
+                var rat = new Rat();
+                Hero.CurrentRoom.mobs.Add(rat);
+                "A rat suddenly appears in the room!".Color(suds.Magic);
+            }
+            else if (string.Equals(args, "ratking", StringComparison.InvariantCultureIgnoreCase))
+            {
+                var ratKing = new Rat
+                {
+                    Description = "There is a giant mass of horrible rats here -- a *RAT KING!*",
+                    Stats = Hero.Stats,
+                    IsHostile = true,
+                    Name = "TheRatKing" + suds.NextMobID,
+                    BaseXP = 20
+                };
+                Hero.CurrentRoom.mobs.Add(ratKing);
+            }
+            
         }
     }
 

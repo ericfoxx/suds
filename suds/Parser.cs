@@ -33,7 +33,7 @@ namespace suds
         
         public static bool Parse(this string input) ///TODO: Parse - area
         {
-            var area = Runtime.CurrentArea;
+            var area = Hero.CurrentArea;
             var command = 'x';
             var blank = false;
             string args = null;
@@ -65,7 +65,7 @@ namespace suds
 
         private static void RunCommand(char command, string args)
         {
-            var area = Runtime.CurrentArea;
+            var area = Hero.CurrentArea;
             switch (command)
             {
                 case 'n':
@@ -126,16 +126,20 @@ namespace suds
                     Runtime.heartbeat = true;
                     break;
                 case '1':
-                    Attack(args, Runtime.Hero.Skill1);
+                    Attack(args, Hero.Skill1);
+                    Runtime.heartbeat = true;
                     break;
                 case '2':
-                    Attack(args, Runtime.Hero.Skill2);
+                    Attack(args, Hero.Skill2);
+                    Runtime.heartbeat = true;
                     break;
                 case '3':
-                    Attack(args, Runtime.Hero.Skill3);
+                    Attack(args, Hero.Skill3);
+                    Runtime.heartbeat = true;
                     break;
                 case '4':
-                    Attack(args, Runtime.Hero.Skill4);
+                    Attack(args, Hero.Skill4);
+                    Runtime.heartbeat = true;
                     break;
                 case '!':
                     Runtime.DebugGenerate(args);
@@ -149,17 +153,17 @@ namespace suds
 
         private static void Grab(string args)
         {
-            var area = Runtime.CurrentArea;
+            var area = Hero.CurrentArea;
             ///TODO: Disambiguate null arg 'grab'
             //for now, just grab gold
             var gold = area.CurrentRoom.gold;
             if (String.IsNullOrEmpty(args) && gold > 0)
             {
-                if (Runtime.Hero.Gold >= 999999)
+                if (Hero.Gold >= 999999)
                     "You have too much gold. Spend some!".Color(suds.Error);
                 else
                 {
-                    Runtime.Hero.Gold += gold;
+                    Hero.Gold += gold;
                     area.CurrentRoom.gold = 0;
                     string.Format("You pick up {0} gold.", gold).Color(suds.Loot);
                 }
@@ -168,9 +172,8 @@ namespace suds
 
         private static void Attack(string args, Skill skill = null)
         {
-            var room = Runtime.CurrentArea.CurrentRoom;
-            var player = Runtime.Hero;
-            var t = player.CurrentTarget;
+            var room = Hero.CurrentRoom;
+            var t = Hero.CurrentTarget;
             ///TODO: process Attack args
             if (t != null)
             {
@@ -185,7 +188,7 @@ namespace suds
             {
                 Combat.GetTarget();
             }
-            if (player.CurrentTarget != null)
+            if (Hero.CurrentTarget != null)
             {
                 Combat.AttackMob(skill);
             }
@@ -196,20 +199,19 @@ namespace suds
 
         private static void LookAt(string args)
         {
-            var area = Runtime.CurrentArea;
             if (string.IsNullOrWhiteSpace(args))
             {
-                area.CurrentRoom.Describe();
+                Hero.CurrentRoom.Describe();
                 return;
             }
             //FindObject(args, area);
 
             //FOR NOW, just make it work for descriptions
-            if (Regex.IsMatch(args, @"^m(e)?", RegexOptions.IgnoreCase)) Runtime.Hero.Describe();
+            if (Regex.IsMatch(args, @"^m(e)?", RegexOptions.IgnoreCase)) Hero.Describe();
             
             ///TODO: Find way to match mob names on describe
             //area.CurrentRoom.mobs.ForEach(m => m.Describe());
-            if (args.Equals("area",StringComparison.InvariantCultureIgnoreCase)) area.Describe();
+            if (args.Equals("area",StringComparison.InvariantCultureIgnoreCase)) Hero.CurrentArea.Describe();
         }
 
         //private static List<IDescribable> GetDescribables(Area area)

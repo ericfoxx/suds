@@ -63,25 +63,26 @@ namespace suds
 
         public static string Prompt()
         {
-            var player = Runtime.Hero;
-            var health = player.Stats.Health / (float)player.Stats.MaxHealth;
+            var health = Hero.Stats.Health / (float)Hero.Stats.MaxHealth;
             //12345678901234567890123456789012345678901234567890123456789012345678901234567890
-            //<PlayerNameXXXX>-HP:HHH/MMM-SK:XXXX-GP:XXXXXXX-
+            //<PlayerNameXXXX>-HP:HHH/MMM-SK:XXXXx-GP:XXXXXXX-
             "<".Color(suds.Normal, false);
-            String.Format("{0,15}", player.Name).Color(suds.Fancy, false);
+            String.Format("{0,15}", Hero.Name).Color(suds.Fancy, false);
             String.Format(">-HP:").Color(suds.Normal, false);
-            String.Format("{0:D3}",player.Stats.Health).Color(
+            String.Format("{0:D3}",Hero.Stats.Health).Color(
                 (health <= 0.5) 
                 ? (health <= 0.2) ? suds.Death 
                     : suds.Alert
                 : suds.Normal
                 , false);
-            String.Format("/{0:D3}-GP:",player.Stats.MaxHealth).Color(suds.Normal, false);
-            String.Format("{0:D7}", player.Gold).Color(suds.Loot, false);
+            String.Format("/{0:D3}",Hero.Stats.MaxHealth).Color(suds.Normal, false);
+            Hero.GetSkillStatuses();
+            String.Format("-GP:").Color(suds.Normal, false);
+            String.Format("{0:D7}", Hero.Gold).Color(suds.Loot, false);
             String.Format("-XP:").Color(suds.Normal, false);
-            String.Format("{0:D7}", player.XP).Color(suds.Fancy, false);
+            String.Format("{0:D7}", Hero.XP).Color(suds.Fancy, false);
             Console.WriteLine();
-            if (Runtime.CurrentArea.CurrentRoom.GetAnyHostiles()) return "!> ".Ask(suds.Alert, false);
+            if (Hero.CurrentRoom.GetAnyHostiles()) return "!> ".Ask(suds.Alert, false);
             return ">> ".Ask(suds.Normal, false);
         }
         

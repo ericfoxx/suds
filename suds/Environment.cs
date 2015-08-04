@@ -26,7 +26,6 @@ namespace suds
         ///TODO: Add description types to Room class
 
         //room contents
-        public Player player { get; set; }
         public List<IMob> mobs { get; set; }
         //public List<IItem> items { get; set; }
         public int gold { get; set; }
@@ -128,25 +127,24 @@ namespace suds
     {
         public static void GetTarget()
         {
-            var room = Runtime.CurrentArea.CurrentRoom;
+            var room = Hero.CurrentRoom;
             if (room.mobs != null && !room.mobs.All(m => m.GetIsDead()))
             {
-                room.player.CurrentTarget = (from m in room.mobs
+                Hero.CurrentTarget = (from m in room.mobs
                                              where m.GetIsDead() == false
                                              orderby m.GetStatBlock().Health
                                              select m).First();
             }
             else
-                Runtime.Hero.CurrentTarget = null;
+                Hero.CurrentTarget = null;
         }
 
         public static void AttackMob(Skill skill = null)
         {
-            var player = Runtime.Hero;
-            var playerStats = player.Stats;
+            var playerStats = Hero.Stats;
             var playerAttack = playerStats.PhysicalAttack;
             
-            var target = Runtime.Hero.CurrentTarget;
+            var target = Hero.CurrentTarget;
             var targetStats = target.GetStatBlock();
             var targetDef = targetStats.PhysicalDefense;
             
@@ -178,6 +176,7 @@ namespace suds
 
                 //crit calc
                 // roll 1-100, if < critChance, CRIT!
+                // Wolfram Alpha: "plot (10x^0.3)/(0.2x^0.3+1) from x = -1 to x = 15"
                 //(10x^0.3)/(0.2x^0.3+1)
                 var pow = Math.Pow((double)playerStats.CriticalChance,0.3);
                 var critChance = (int)Math.Floor((10 * pow)/(1 + 0.2 * pow));
@@ -198,37 +197,39 @@ namespace suds
                 {
                     var didCritOrOverkill = (h <= -0.5 * mh);
                     target.Die(didCritOrOverkill);
-                    player.XP += target.GrantXP(didCritOrOverkill);
-                    target.SetIsHostile(false);
+                    Hero.XP += target.GrantXP(didCritOrOverkill);
+                    //target.SetIsHostile(false);
                 }
-                else if (!target.GetIsHostile()) target.SetIsHostile(true);
+                //Hero.CurrentTarget = target;
+                if (!Hero.CurrentTarget.GetIsHostile() && !Hero.CurrentTarget.GetIsDead()) Hero.CurrentTarget.SetIsHostile(true);
             }
             else
             {
-                String.Format("You miss. ({0} vs {1})", roll, targetDef).Color(suds.Error);
+                String.Format("You miss. ({0} vs {1})", roll, targetDef).Color(suds.Error, false);
             }
+            Console.WriteLine();
 
             
         }
 
         public static void MobsAttackPlayer()
         {
-            var room = Runtime.CurrentArea.CurrentRoom;
-            var player = Runtime.Hero;
-            var pDef = player.Stats.PhysicalDefense;
-            int i, cnt, mAtt;
+            var room = Hero.CurrentRoom;
+            var pDef = Hero.Stats.PhysicalDefense;
+            int i, cnt, mAtt, roll;
             for (i = 0, cnt = room.mobs.Count; i < cnt; i++)
             {
                 if (room.mobs[i].GetIsHostile())
                 {
                     String.Format("{0} attacks you. ", room.mobs[i].GetName()).Color(suds.Error, false);
                     mAtt = room.mobs[i].GetStatBlock().PhysicalAttack;
-                    if (Dice.RollRange(1,mAtt) > pDef)
+                    var attRoll = Dice.RollRange(1, mAtt);
+                    if (attRoll > pDef)
                     {
                         var dmg = Dice.RollRange(1, 3);
-                        player.Stats.Health -= dmg;
+                        Hero.Stats.Health -= dmg;
                         "The attack hits!".Color(suds.Error);
-                        if (player.Stats.Health <= 0) player.Die(String.Format("You have been slain by {0}.", room.mobs[i].GetName()));
+                        if (Hero.Stats.Health <= 0) Hero.Die(String.Format("You have been slain by {0}.", room.mobs[i].GetName()));
                     }
                     else
                     {
@@ -246,7 +247,6 @@ namespace suds
         public string Description { get; set; }
         public bool IsLoaded { get; set; }
         public List<Room> Rooms { get; set; }
-        public bool ContainsPlayer { get; set; }
         public Room CurrentRoom { get; set; }
 
         public Area(string name, string description)
@@ -256,14 +256,13 @@ namespace suds
             Name = name;
             Description = description;
 
-            IsLoaded = ContainsPlayer = false;
+            IsLoaded = false;
         }
 
         public void Travel(Room targetRoom)
         {
             CurrentRoom = targetRoom;
-            CurrentRoom.player = Runtime.Hero;
-            Runtime.Hero.CurrentRoom = targetRoom;
+            Hero.CurrentRoom = targetRoom;
             CurrentRoom.Describe();
         }
 

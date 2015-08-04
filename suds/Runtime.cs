@@ -18,10 +18,8 @@ namespace suds
         private static bool quit { get; set; }
         public static string input { get; set; }
         public static string prevInput { get; set; }
-        public static Player Hero { get; set; }
         public static List<Skill> Skills { get; set; }
         public static List<Area> Areas { get; set; }
-        public static Area CurrentArea { get; set; }
         public static bool heartbeat { get; set; }
         
 
@@ -33,7 +31,6 @@ namespace suds
 
             ///TODO: Manage player/world saving and loading
 
-            Hero = new Player();
             "Welcome to the SUDS (Single-User Dungeon System)!".Color(suds.Normal);
             while (input.Length < 1 || input.Length > 15)
                 input = "What is your name?".Ask(suds.Normal);
@@ -62,8 +59,6 @@ namespace suds
 
         public static void MainLoop()
         {
-            CurrentArea = Areas[0];
-            
             while (!quit)
             {
                 //prompt (including writing the player bar)
@@ -78,7 +73,7 @@ namespace suds
 
                 //mutate world
                 //for example, combat, health regen, etc.
-                if (heartbeat && CurrentArea.CurrentRoom.GetAnyHostiles())
+                if (heartbeat && Hero.CurrentRoom.GetAnyHostiles())
                 {
                     Combat.MobsAttackPlayer();
                 }
@@ -99,7 +94,6 @@ namespace suds
             startingRoom.gold = 2;
             var rat = new Rat();
             startingRoom.mobs = new List<IMob> { rat };
-            startingRoom.player = Hero;
             Hero.CurrentRoom = startingRoom;
             startingArea.CurrentRoom = startingRoom;
 
@@ -107,10 +101,10 @@ namespace suds
             startingRoom.LinkRooms(secondRoom, suds.Directions.North);
 
             startingArea.Rooms = new List<Room>(){ startingRoom, secondRoom };
-            startingArea.ContainsPlayer = true;
             startingArea.IsLoaded = true;
 
             Areas.Add(startingArea);
+            Hero.CurrentArea = Areas[0];
 
             startingRoom.Describe();
         }
@@ -198,11 +192,11 @@ namespace suds
                 var ratKing = new Rat
                 {
                     Description = "There is a giant mass of horrible rats here -- a *RAT KING!*",
-                    Stats = Hero.Stats,
+                    Stats = new StatBlock(15,17,17,5,5),
                     IsHostile = true,
-                    Name = "TheRatKing" + suds.NextMobID,
                     BaseXP = 20
                 };
+                ratKing.Name = "TheRatKing" + ratKing.ID;
                 Hero.CurrentRoom.mobs.Add(ratKing);
             }
             

@@ -72,22 +72,23 @@ namespace suds
         }
     }
     
-    public class Player : IDescribable
+    public static class Hero
     {
-        public string Name { get; set; }
-        public IOccupation Occupation { get; set; }
-        public StatBlock Stats { get; set; }
-        public Room CurrentRoom { get; set; }
-        public IMob CurrentTarget { get; set; }
-        public int XP { get; set; }
-        public int Gold { get; set; }
-        public List<Skill> Skills { get; set; }
-        public Skill Skill1 { get; set; }
-        public Skill Skill2 { get; set; }
-        public Skill Skill3 { get; set; }
-        public Skill Skill4 { get; set; }
+        public static string Name { get; set; }
+        public static IOccupation Occupation { get; set; }
+        public static StatBlock Stats { get; set; }
+        public static Room CurrentRoom { get; set; }
+        public static Area CurrentArea { get; set; }
+        public static IMob CurrentTarget { get; set; }
+        public static int XP { get; set; }
+        public static int Gold { get; set; }
+        public static List<Skill> Skills { get; set; }
+        public static Skill Skill1 { get; set; }
+        public static Skill Skill2 { get; set; }
+        public static Skill Skill3 { get; set; }
+        public static Skill Skill4 { get; set; }
 
-        public Player()
+        static Hero()
         {
             Occupation = new Warrior(); ///TODO: implement more occupations!
 
@@ -105,42 +106,56 @@ namespace suds
             Skills = new List<Skill>();
         }
 
-        public Player(string name)
-            : this()
-        {
-            Name = name;
-        }
-
-        public void Describe()
+        public static void Describe()
         {
             "You are a fearsome warrior!".Color(suds.Normal);
             Stats.Display();
         }
 
-        public void Die(string p)
+        public static void Die(string p)
         {
             p.Color(suds.Death);
             suds.Quit();
         }
 
-        public void UseSkill1()
+        public static void GetSkillStatuses()
         {
-            "Hi-ya!".Color(suds.Normal);
-        }
-
-        public void UseSkill2()
-        {
-            "Wa-chow!".Color(suds.Normal);
-        }
-
-        public void UseSkill3()
-        {
-            "You perform a spinning roundhouse!".Color(suds.Normal);
-        }
-
-        public void UseSkill4()
-        {
-            "You flip the table over. Wow!".Color(suds.Normal);
+            "-SK1:".Color(suds.Normal, false);
+            if (Skill1 != null)
+            {
+                String.Format("{0,5}:{1:D2}", Skill1.ShortName, 0).Color(suds.Normal, false);
+            }
+            else
+            {
+                "-----:00".Color(suds.Normal, false);
+            }
+            "-SK2:".Color(suds.Normal, false);
+            if (Skill2 != null)
+            {
+                String.Format("{0,5}:{1:D2}", Skill2.ShortName, 0).Color(suds.Normal, false);
+            }
+            else
+            {
+                "-----:00".Color(suds.Normal, false);
+            }
+            "-SK3:".Color(suds.Normal, false);
+            if (Skill3 != null)
+            {
+                String.Format("{0,5}:{1:D2}", Skill3.ShortName, 0).Color(suds.Normal, false);
+            }
+            else
+            {
+                "-----:00".Color(suds.Normal, false);
+            }
+            "-SK4:".Color(suds.Normal, false);
+            if (Skill4 != null)
+            {
+                String.Format("{0,5}:{1:llD2}", Skill4.ShortName, 0).Color(suds.Normal, false);
+            }
+            else
+            {
+                "-----:00".Color(suds.Normal, false);
+            }
         }
     }
 
@@ -188,6 +203,7 @@ namespace suds
 
     public class Rat : IMob
     {
+        public int ID { get; set; }
         public string Name { get; set; }
         public string Description { get; set; }
         public StatBlock Stats { get; set; }
@@ -197,7 +213,8 @@ namespace suds
 
         public Rat()
         {
-            Name = "rat" + suds.NextMobID;
+            ID = suds.NextMobID;
+            Name = "rat" + ID;
             suds.NextMobID++;
             Stats = new StatBlock(Dice.RollRange(6,12), Dice.RollRange(3, 9), Dice.RollRange(3, 8), Dice.RollRange(3, 7), Dice.RollRange(1, 2));
             IsHostile = (Dice.RollRange(1,10) > 9) ? true : false; //10% chance 
@@ -215,13 +232,13 @@ namespace suds
         {
             if (IsDead)
             {
-                "This rat is dead.".Color(suds.Death);
+                "There is a dead rat here.".Color(suds.Death);
                 return;
             }
             
             Description.Color(suds.Normal, false);
-            if (Stats.Health / (float)Stats.MaxHealth <= 0.5) "It looks bloodied.".Color(suds.Normal, false);
-            else if (Stats.Health / (float)Stats.MaxHealth <= 0.2) "It's near death!".Color(suds.Death, false);
+            if (Stats.Health / (float)Stats.MaxHealth <= 0.5) "It looks bloodied.".Color(suds.Alert, false);
+            else if (Stats.Health / (float)Stats.MaxHealth <= 0.2) "It's near death!".Color(suds.Error, false);
             Console.WriteLine();
         }
 
@@ -241,12 +258,11 @@ namespace suds
             String.Format("{0} recoils in pain. ", this.Name).Color(suds.Normal, false);
             if (Stats.Health / (float)Stats.MaxHealth <= 0.5) "It looks bloodied.".Color(suds.Alert, false);
             else if (Stats.Health / (float)Stats.MaxHealth <= 0.2) "It's near death!".Color(suds.Error, false);
-            Console.WriteLine();
         }
 
         public void Die(bool IsCritOrOverkill)
         {
-            var room = Runtime.CurrentArea.CurrentRoom;
+            var room = Hero.CurrentRoom;
             var gold = Dice.RollRange(2, 6); //2-6 gold
             "The rat has been slain. ".Color(suds.Death, false);
             if (IsCritOrOverkill)
@@ -258,7 +274,7 @@ namespace suds
             }
             ///TODO: add items to the room.
 
-            String.Format("The rat drops {0} gold.",gold).Color(suds.Loot);
+            String.Format("The rat drops {0} gold.",gold).Color(suds.Loot, false);
             room.gold += gold;
             IsDead = true;
             IsHostile = false;

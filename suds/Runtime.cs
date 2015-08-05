@@ -73,11 +73,18 @@ namespace suds
 
                 //mutate world
                 //for example, combat, health regen, etc.
-                if (heartbeat && Hero.CurrentRoom.GetAnyHostiles())
-                {
-                    Combat.MobsAttackPlayer();
-                }
+                if (heartbeat){
 
+                    if ( Hero.CurrentRoom.GetAnyHostiles())
+                    {
+                        Combat.MobsAttackPlayer();
+                    }
+                    Hero.DecSkillTimers();
+                    Hero.HealthRegen();
+                    Hero.CurrentRoom.mobs
+                        .Where(m => !m.GetIsDead() && m.GetIsStunned()).ToList()
+                        .ForEach(m => m.DecStunCounter());
+                }
                 //Handle player death after combat actions
                 if (Hero.Stats.Health <= 0) Hero.Die("You have been slain.");
                 //save state?
@@ -116,6 +123,7 @@ namespace suds
                     Name = "Bash", ShortName = "BASH ",
                     Description = "A powerful strike with a greater stun chance.",
                     Sound = "You execute a powerful bash!",
+                    TimerMax = 4,
                     Modifiers = {
                         PhyAtk = 5,
                         Dmg = 5,
@@ -127,6 +135,7 @@ namespace suds
                     Name = "CorpseShield", ShortName = "CORSH",
                     Description = "Use a corpse in the room to increase your defenses.",
                     Sound = "You throw a corpse over your shoulder for protection. Yuck.",
+                    TimerMax = 5,
                     Modifiers = {
                         PhyDef = 25,
                         MagDef = 25,
@@ -137,6 +146,7 @@ namespace suds
                     Name = "BodySlam", ShortName = "BSLAM",
                     Description = "A huge slam that targets the entire room.",
                     Sound = "The whole room shakes with your huge body slam!",
+                    TimerMax = 6,
                     Modifiers = {
                         PhyAtk = 50,
                         Dmg = 100,
@@ -148,6 +158,7 @@ namespace suds
                     Name = "TrueStrike", ShortName = "TRUES",
                     Description = "A cunning lunge that delivers incredible damage.",
                     Sound = "You surge forward, wreathed in power, delivering the True Strike!",
+                    TimerMax = 8,
                     Modifiers = {
                         PhyAtk = 125,
                         PhyAtkPct = 0.25M,
@@ -161,6 +172,7 @@ namespace suds
                     Name = "AlphaForm", ShortName = "ALPHA",
                     Description = "A cataclysm of physical prowess!",
                     Sound = "You deliver death to all as you assume the ALPHA FORM!",
+                    TimerMax = 11,
                     Modifiers = {
                         PhyAtk = 500,
                         PhyAtkPct = 0.5M,
@@ -192,7 +204,7 @@ namespace suds
                 var ratKing = new Rat
                 {
                     Description = "There is a giant mass of horrible rats here -- a *RAT KING!*",
-                    Stats = new StatBlock(15,17,17,5,5),
+                    Stats = new StatBlock(15,17,12,5,5),
                     IsHostile = true,
                     BaseXP = 20
                 };
@@ -228,9 +240,27 @@ namespace suds
             return Generator.Next(min, max + 1);
         }
 
+        public static int RollPercent()
+        {
+            return Generator.Next(1, 101);
+        }
+
         public static bool CoinFlip()
         {
             return ((Generator.Next(0, 2) == 0) ? false : true);
+        }
+
+        public static void Shuffle<T>(IList<T> list)
+        {
+            int n = list.Count;
+            while (n > 1)
+            {
+                n--;
+                int k = Generator.Next(n + 1);
+                T value = list[k];
+                list[k] = list[n];
+                list[n] = value;
+            }
         }
     }
 }

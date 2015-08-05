@@ -21,11 +21,19 @@ namespace suds
         public int MagicDefense { get; set; }
         public int CriticalChance { get; set; }
         public int FearChance { get; set; }
+        public int HealthRegen { get; set; }
 
         public int LifeSteal { get; set; }
         public int SkillRefreshChance { get; set; }
         public int DodgeChance { get; set; }
         public int StunChance { get; set; }
+        public int StunDuration { get; set; }
+
+        public int ScaledCritChance { get; set; }
+        public int ScaledFearChance { get; set; }
+        public int ScaledDodgeChance { get; set; }
+        public int ScaledStunChance { get; set; }
+        public int ScaledLifeStealChance { get; set; }
 
         public StatBlock()
         {
@@ -34,6 +42,7 @@ namespace suds
             Strength = Dexterity = Intellect = Spirit = 10;
 
             CalcDerivedAttributes();
+            CalcScaledAttributes();
         }
 
         public StatBlock(int maxH, int str, int dex, int intel, int spi)
@@ -46,20 +55,40 @@ namespace suds
             Spirit = spi;
 
             CalcDerivedAttributes();
+            CalcScaledAttributes();
         }
 
         public void CalcDerivedAttributes()
         {
-            ///TODO: Make 'chance' stats logarithmic
             PhysicalAttack = PhysicalDefense = (int)Math.Ceiling((Strength + Dexterity) / 2.0);
             MagicAttack = MagicDefense = (int)Math.Ceiling((Intellect + Spirit) / 2.0);
             CriticalChance = (int)Math.Ceiling((Dexterity + Spirit) / 2.0);
             FearChance = (int)Math.Ceiling((Strength + Intellect) / 2.0);
+            HealthRegen = (int)Math.Floor((Strength + Spirit) / 2.0);
+
+            StunDuration = 2; //Because heartbeat happens on same step, we waste one
 
             StunChance = Strength / 2;
             DodgeChance = Dexterity / 2;
             SkillRefreshChance = Intellect / 2;
             LifeSteal = Spirit / 2;
+        }
+
+        public void CalcScaledAttributes()
+        {// Wolfram Alpha: "plot (10x^0.3)/(0.2x^0.3+1) from x = -1 to x = 15"
+            //(10x^0.3)/(0.2x^0.3+1)
+            ScaledCritChance = Scale(CriticalChance);
+            ScaledFearChance = Scale(FearChance);
+            ScaledDodgeChance = Scale(DodgeChance);
+            ScaledStunChance = Scale(StunChance);
+            ScaledLifeStealChance = Scale(LifeSteal);
+        }
+
+        private int Scale(int stat)
+        {
+            var pow = Math.Pow((double)stat, 0.3);
+            var scaledStat = (int)Math.Floor((10 * pow) / (1 + 0.2 * pow));
+            return scaledStat;
         }
 
         public void Display()
@@ -91,23 +120,16 @@ namespace suds
         static Hero()
         {
             Occupation = new Warrior(); ///TODO: implement more occupations!
-
-            ///TODO: Create SetStats in Warrior class.
-
             Stats = new StatBlock(20, Dice.RollRange(12,17), Dice.RollRange(8, 10), Dice.RollRange(7, 10), Dice.RollRange(8, 10));
-
-            //call Occupation.CanSmash() to see if this character can smash.
             Gold = 10;
-
             XP = 0;
-
             CurrentTarget = null;
-
             Skills = new List<Skill>();
         }
 
         public static void Describe()
         {
+            //TODO: Better player description system (items, occ, backstory/quests/title?)
             "You are a fearsome warrior!".Color(suds.Normal);
             Stats.Display();
         }
@@ -123,7 +145,7 @@ namespace suds
             "-SK1:".Color(suds.Normal, false);
             if (Skill1 != null)
             {
-                String.Format("{0,5}:{1:D2}", Skill1.ShortName, 0).Color(suds.Normal, false);
+                String.Format("{0,5}:{1:D2}", Skill1.ShortName, Skill1.Timer).Color(suds.Normal, false);
             }
             else
             {
@@ -132,7 +154,7 @@ namespace suds
             "-SK2:".Color(suds.Normal, false);
             if (Skill2 != null)
             {
-                String.Format("{0,5}:{1:D2}", Skill2.ShortName, 0).Color(suds.Normal, false);
+                String.Format("{0,5}:{1:D2}", Skill2.ShortName, Skill2.Timer).Color(suds.Normal, false);
             }
             else
             {
@@ -141,7 +163,7 @@ namespace suds
             "-SK3:".Color(suds.Normal, false);
             if (Skill3 != null)
             {
-                String.Format("{0,5}:{1:D2}", Skill3.ShortName, 0).Color(suds.Normal, false);
+                String.Format("{0,5}:{1:D2}", Skill3.ShortName, Skill3.Timer).Color(suds.Normal, false);
             }
             else
             {
@@ -150,11 +172,42 @@ namespace suds
             "-SK4:".Color(suds.Normal, false);
             if (Skill4 != null)
             {
-                String.Format("{0,5}:{1:llD2}", Skill4.ShortName, 0).Color(suds.Normal, false);
+                String.Format("{0,5}:{1:llD2}", Skill4.ShortName, Skill4.Timer).Color(suds.Normal, false);
             }
             else
             {
                 "-----:00".Color(suds.Normal, false);
+            }
+        }
+
+        public static void DecSkillTimers()
+        {
+            //roll for skill refresh & choose a random non-zero timer to set to zero
+            var skills = new List<Skill> { Skill1, Skill2, Skill3, Skill4 };
+            if (skills.Count(s => s != null && s.Timer > 0) == 0) return; //no skills to dec or refresh
+            Skill skill;
+            var roll = Dice.RollPercent();
+            if (roll < Hero.Stats.SkillRefreshChance)
+            {
+                skills = new List<Skill> { Skill1, Skill2, Skill3, Skill4 };
+                Dice.Shuffle(skills);
+                skill = skills.First(s => s != null && s.Timer != 0);
+                if (skill != null)
+                {
+                    String.Format("You feel energized as {0} refreshes!", skill.Name).Color(suds.Magic);
+                    skill.Timer = 0;
+                }
+            }
+            //check and see if any skill is on a timer, then dec by one (stopping at 0)
+            skills.Where(s => s != null && s.Timer > 0).ToList().ForEach(s => s.Timer--);
+        }
+
+        internal static void HealthRegen()
+        {
+            if (Stats.Health < Stats.MaxHealth)
+            {
+                var regen = (int)Math.Floor(Stats.MaxHealth / (decimal)Stats.HealthRegen);
+                Stats.Health = Math.Min(Stats.MaxHealth, Stats.Health + regen);
             }
         }
     }
@@ -199,6 +252,9 @@ namespace suds
         bool GetIsHostile();
         void SetIsHostile(bool flag);
         bool GetIsDead();
+        void SetStunned(int duration);
+        bool GetIsStunned();
+        void DecStunCounter();
     }
 
     public class Rat : IMob
@@ -210,6 +266,7 @@ namespace suds
         public bool IsHostile { get; set; }
         public bool IsDead { get; set; }
         public int BaseXP { get; set; }
+        public int StunCounter { get; set; }
 
         public Rat()
         {
@@ -221,6 +278,7 @@ namespace suds
             Description = String.Format("There is a filthy rat here ({0}).", Name);
             IsDead = false;
             BaseXP = 2;
+            StunCounter = 0;
         }
 
         public string GetName()
@@ -237,8 +295,9 @@ namespace suds
             }
             
             Description.Color(suds.Normal, false);
-            if (Stats.Health / (float)Stats.MaxHealth <= 0.5) "It looks bloodied.".Color(suds.Alert, false);
-            else if (Stats.Health / (float)Stats.MaxHealth <= 0.2) "It's near death!".Color(suds.Error, false);
+            if (Stats.Health / (float)Stats.MaxHealth <= 0.5) "It looks bloodied. ".Color(suds.Alert, false);
+            else if (Stats.Health / (float)Stats.MaxHealth <= 0.2) "It's near death! ".Color(suds.Error, false);
+            if (GetIsStunned()) "It is stunned! ".Color(suds.Fancy, false);
             Console.WriteLine();
         }
 
@@ -303,6 +362,22 @@ namespace suds
         public bool GetIsDead()
         {
             return IsDead;
+        }
+
+        public void SetStunned(int duration)
+        {
+            StunCounter += duration;
+        }
+
+        public bool GetIsStunned()
+        {
+            return (StunCounter > 0);
+        }
+
+        public void DecStunCounter()
+        {
+            if (StunCounter <= 1) StunCounter = 0;
+            else StunCounter--;
         }
     }
 }

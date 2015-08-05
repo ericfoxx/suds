@@ -46,12 +46,15 @@ namespace suds
         public string ShortName { get; set; }
         public string Description { get; set; }
         public string Sound { get; set; }
+        public int Timer { get; set; }
+        public int TimerMax { get; set; }
 
         public CombatModifiers Modifiers { get; set; }
 
         public Skill()
         {
             Modifiers = new CombatModifiers();
+            Timer = TimerMax = 0;
         }
     }
 }

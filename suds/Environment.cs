@@ -37,7 +37,6 @@ namespace suds
             ID = suds.NextRoomID;
             suds.NextRoomID++;
             Described = false;
-            ///TODO: Area = "Starting Area"; in Room ctor
         }
 
         public Room(string name, string desc)
@@ -57,7 +56,7 @@ namespace suds
             if (d != null) LinkRooms(d, suds.Directions.Down);
         }
 
-        /// TODO: Make 'EnterRoom' method in Room
+        /// TODO: Make 'EnterRoom' method in Room -- can handle starting room scripts?
 
         public void Describe()
         {
@@ -118,7 +117,7 @@ namespace suds
         public bool GetAnyHostiles()
         {
             if (mobs == null) return false;
-            var anyHostiles = mobs.Any(m => m.GetIsHostile());
+            var anyHostiles = mobs.Any(m => m.GetIsHostile() && !m.GetIsStunned());
             return anyHostiles;
         }
     }
@@ -147,6 +146,8 @@ namespace suds
             var target = Hero.CurrentTarget;
             var targetStats = target.GetStatBlock();
             var targetDef = targetStats.PhysicalDefense;
+
+            var procRoll = 0;
             
             //TODO: apply weapon and passive skill/xp-grid-buff dmgMods to dmgMod as well
             var dmgMod = 0;
@@ -171,22 +172,33 @@ namespace suds
             if (roll > targetDef)
             {
                 //hit! Compute damage (usually based on weapon and skill)
-                var dmg = Dice.RollRange(1, roll - targetDef + dmgMod);
-                ///TODO: roll critical after hit
-
+                var dmg = Dice.RollRange(1, roll + dmgMod - targetDef);
+                
+                //set skill timer
+                if (skill != null) skill.Timer = skill.TimerMax;
+                
                 //crit calc
                 // roll 1-100, if < critChance, CRIT!
-                // Wolfram Alpha: "plot (10x^0.3)/(0.2x^0.3+1) from x = -1 to x = 15"
-                //(10x^0.3)/(0.2x^0.3+1)
-                var pow = Math.Pow((double)playerStats.CriticalChance,0.3);
-                var critChance = (int)Math.Floor((10 * pow)/(1 + 0.2 * pow));
-                var critRoll = Dice.RollRange(1, 100);
-                var didCrit = (critRoll <= critChance) ? true : false;
+                procRoll = Dice.RollPercent();
+                var didCrit = (procRoll <= Hero.Stats.ScaledCritChance) ? true : false;
 #if DEBUG
-                String.Format("(critChance:{0} roll:{1}) ", critChance, critRoll).Color(suds.Alert, false);
+                String.Format("(critChance:{0} roll:{1}) ", Hero.Stats.ScaledCritChance, procRoll).Color(suds.Alert, false);
 #endif
-                if (didCrit) "You deliver a powerful blow! ".Color(suds.Alert, false);
-                
+                if (didCrit)
+                {
+                    dmg *= 2;
+                    "You deliver a powerful blow! ".Color(suds.Alert, false);
+                }
+                //steal life from mob
+                procRoll = Dice.RollPercent();
+                if (procRoll < Hero.Stats.ScaledLifeStealChance)
+                {
+                    var life = (int)Math.Ceiling(Hero.Stats.MaxHealth / 15.0);
+                    dmg += life;
+                    Hero.Stats.Health = Math.Min(Hero.Stats.MaxHealth, Hero.Stats.Health + life);
+                    string.Format("You steal {0} life from your target! ", life).Color(suds.Magic, false);
+                }
+
                 //apply damage to mob
                 target.TakeDamage(dmg, didCrit);
                 
@@ -200,6 +212,21 @@ namespace suds
                     Hero.XP += target.GrantXP(didCritOrOverkill);
                     //target.SetIsHostile(false);
                 }
+                //proc Fear & Stun
+                procRoll = Dice.RollPercent();
+                if (procRoll < Hero.Stats.ScaledFearChance)
+                {
+                    "Your target is so afraid of you, it stops attacking! ".Color(suds.Fancy, false);
+                    target.SetIsHostile(false); //It's afraid, so it cowers.
+                }
+                procRoll = Dice.RollPercent();
+                if (procRoll < Hero.Stats.ScaledStunChance)
+                {
+                    "You stun your target with your powerful attack! ".Color(suds.Fancy, false);
+                    ///TODO: Add any appropriate stun (or other calc'd attrs) buffs to skills
+                    target.SetStunned(Hero.Stats.StunDuration);
+                }
+
                 //Hero.CurrentTarget = target;
                 if (!Hero.CurrentTarget.GetIsHostile() && !Hero.CurrentTarget.GetIsDead()) Hero.CurrentTarget.SetIsHostile(true);
             }
@@ -216,7 +243,7 @@ namespace suds
         {
             var room = Hero.CurrentRoom;
             var pDef = Hero.Stats.PhysicalDefense;
-            int i, cnt, mAtt, roll;
+            int i, cnt, mAtt, procRoll;
             for (i = 0, cnt = room.mobs.Count; i < cnt; i++)
             {
                 if (room.mobs[i].GetIsHostile())
@@ -226,10 +253,18 @@ namespace suds
                     var attRoll = Dice.RollRange(1, mAtt);
                     if (attRoll > pDef)
                     {
-                        var dmg = Dice.RollRange(1, 3);
-                        Hero.Stats.Health -= dmg;
-                        "The attack hits!".Color(suds.Error);
-                        if (Hero.Stats.Health <= 0) Hero.Die(String.Format("You have been slain by {0}.", room.mobs[i].GetName()));
+                        procRoll = Dice.RollPercent();
+                        if (procRoll < Hero.Stats.ScaledDodgeChance)
+                        {
+                            "You dodge gracefully! ".Color(suds.Fancy);
+                        }
+                        else
+                        {
+                            var dmg = Dice.RollRange(1, 3);
+                            Hero.Stats.Health -= dmg;
+                            "The attack hits!".Color(suds.Error);
+                            if (Hero.Stats.Health <= 0) Hero.Die(String.Format("You have been slain by {0}.", room.mobs[i].GetName()));
+                        }
                     }
                     else
                     {

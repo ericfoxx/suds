@@ -31,7 +31,7 @@ namespace suds
             @"^(!)(?:\s+(\w+))?"
         };
         
-        public static bool Parse(this string input) ///TODO: Parse - area
+        public static bool Parse(this string input)
         {
             var area = Hero.CurrentArea;
             var command = 'x';
@@ -126,20 +126,48 @@ namespace suds
                     Runtime.heartbeat = true;
                     break;
                 case '1':
-                    Attack(args, Hero.Skill1);
-                    Runtime.heartbeat = true;
+                    if (Hero.Skill1.Timer > 0)
+                    {
+                        "This skill is on cooldown.".Color(suds.Error);
+                    }
+                    else
+                    {
+                        Attack(args, Hero.Skill1);
+                        Runtime.heartbeat = true;
+                    }
                     break;
                 case '2':
-                    Attack(args, Hero.Skill2);
-                    Runtime.heartbeat = true;
+                    if (Hero.Skill2.Timer > 0)
+                    {
+                        "This skill is on cooldown.".Color(suds.Error);
+                    }
+                    else
+                    {
+                        Attack(args, Hero.Skill2);
+                        Runtime.heartbeat = true;
+                    }
                     break;
                 case '3':
-                    Attack(args, Hero.Skill3);
-                    Runtime.heartbeat = true;
+                    if (Hero.Skill3.Timer > 0)
+                    {
+                        "This skill is on cooldown.".Color(suds.Error);
+                    }
+                    else
+                    {
+                        Attack(args, Hero.Skill3);
+                        Runtime.heartbeat = true;
+                    }
                     break;
                 case '4':
-                    Attack(args, Hero.Skill4);
-                    Runtime.heartbeat = true;
+                    if (Hero.Skill4.Timer > 0)
+                    {
+                        "This skill is on cooldown.".Color(suds.Error);
+                    }
+                    else
+                    {
+                        Attack(args, Hero.Skill4);
+                        Runtime.heartbeat = true;
+                    }
                     break;
                 case '!':
                     Runtime.DebugGenerate(args);
@@ -222,7 +250,6 @@ namespace suds
         //            where p is IDescribable
         //            select (IDescribable)p.GetValue(area)).ToList();
             //describableObjs.ForEach(o => o.Describe());
-            ///BUG: I don't think GetDescribables is returning anything b/c the props themselves are indirect: classes that inherit IDescribable.
         //}
 
         //private void GetListOfDescs<Object>(List<Object> objects, out IList<IDescribable> objs) where Object : IDescribable

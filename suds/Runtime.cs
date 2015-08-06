@@ -99,7 +99,7 @@ namespace suds
 
             var startingRoom = new Room("Starting Room", "This is the room you start in. It looks very normal.");
             startingRoom.gold = 2;
-            var rat = new Rat();
+            var rat = new Mob();
             startingRoom.mobs = new List<IMob> { rat };
             Hero.CurrentRoom = startingRoom;
             startingArea.CurrentRoom = startingRoom;
@@ -195,21 +195,29 @@ namespace suds
         {
             if (string.IsNullOrWhiteSpace(args) || string.Equals(args, "rat", StringComparison.InvariantCultureIgnoreCase))
             {
-                var rat = new Rat();
+                var rat = new Mob();
                 Hero.CurrentRoom.mobs.Add(rat);
                 "A rat suddenly appears in the room!".Color(suds.Magic);
             }
             else if (string.Equals(args, "ratking", StringComparison.InvariantCultureIgnoreCase))
             {
-                var ratKing = new Rat
+                var ratKing = new Mob
                 {
-                    Description = "There is a giant mass of horrible rats here -- a *RAT KING!*",
                     Stats = new StatBlock(15,17,12,5,5),
                     IsHostile = true,
-                    BaseXP = 20
+                    BaseXP = 20,
+                    Desc = "There is a giant mass of horrible rats here -- a *RAT KING!*",
+                    HalfDeadDesc = "The rat king is bloodied",
+                    MostlyDeadDesc = "The rat king is near death!",
+                    StunnedDesc = "The rat king is stunned!",
+                    PainDesc = "The rat king recoils in pain.",
+                    DeathDesc = "The pile of rats quivers and falls apart, finally silenced forever.",
+                    DeathCritDesc = "Your final mighty blow sends it flying apart!",
+                    DropGoldDesc = "The rat king drops {0} gold"
                 };
-                ratKing.Name = "TheRatKing" + ratKing.ID;
+                ratKing.Name = "TheRatKing";
                 Hero.CurrentRoom.mobs.Add(ratKing);
+                "Out of the corner of your eye, you notice a horrible writhing mass of rats appear - it's a *Rat King*!".Color(suds.Magic);
             }
             
         }

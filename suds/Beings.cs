@@ -257,25 +257,45 @@ namespace suds
         void DecStunCounter();
     }
 
-    public class Rat : IMob
+    public class Mob : IMob
     {
         public int ID { get; set; }
         public string Name { get; set; }
-        public string Description { get; set; }
-        public StatBlock Stats { get; set; }
-        public bool IsHostile { get; set; }
-        public bool IsDead { get; set; }
         public int BaseXP { get; set; }
+        
+        public StatBlock Stats { get; set; }
         public int StunCounter { get; set; }
 
-        public Rat()
+        public bool IsHostile { get; set; }
+        public bool IsDead { get; set; }
+                
+        public string Desc { get; set; }
+        public string DeadDesc { get; set; }
+        public string HalfDeadDesc { get; set; }
+        public string MostlyDeadDesc { get; set; }
+        public string StunnedDesc { get; set; }
+        public string PainDesc { get; set; }
+
+        public string DeathDesc { get; set; }
+        public string DeathCritDesc { get; set; }
+        public string DropGoldDesc { get; set; }
+
+        public Mob()
         {
             ID = suds.NextMobID;
-            Name = "rat" + ID;
+            Name = "mob";
             suds.NextMobID++;
             Stats = new StatBlock(Dice.RollRange(6,12), Dice.RollRange(3, 9), Dice.RollRange(3, 8), Dice.RollRange(3, 7), Dice.RollRange(1, 2));
             IsHostile = (Dice.RollRange(1,10) > 9) ? true : false; //10% chance 
-            Description = String.Format("There is a filthy rat here ({0}).", Name);
+            Desc = String.Format("There is a generic mob here: {0}.", GetName());
+            DeadDesc = "There is something dead here.";
+            HalfDeadDesc = "It is bloodied!";
+            MostlyDeadDesc = "It is near death.";
+            StunnedDesc = "It is stunned!";
+            PainDesc = "It recoils in pain.";
+            DeathDesc = "The creature has been slain.";
+            DeathCritDesc = "It explodes!";
+            DropGoldDesc = "The creature drops {0} gold";
             IsDead = false;
             BaseXP = 2;
             StunCounter = 0;
@@ -283,21 +303,21 @@ namespace suds
 
         public string GetName()
         {
-            return Name;
+            return String.Format("{0}[{1}]", Name, ID);
         }
 
         public void Describe()
         {
             if (IsDead)
             {
-                "There is a dead rat here.".Color(suds.Death);
+                DeadDesc.Color(suds.Death);
                 return;
             }
             
-            Description.Color(suds.Normal, false);
-            if (Stats.Health / (float)Stats.MaxHealth <= 0.5) "It looks bloodied. ".Color(suds.Alert, false);
-            else if (Stats.Health / (float)Stats.MaxHealth <= 0.2) "It's near death! ".Color(suds.Error, false);
-            if (GetIsStunned()) "It is stunned! ".Color(suds.Fancy, false);
+            string.Format("{0} ",Desc).Color(suds.Normal, false);
+            if (Stats.Health / (float)Stats.MaxHealth <= 0.5) String.Format("{0} ", HalfDeadDesc).Color(suds.Alert, false);
+            else if (Stats.Health / (float)Stats.MaxHealth <= 0.2) String.Format("{0} ", MostlyDeadDesc).Color(suds.Error, false);
+            if (GetIsStunned()) String.Format("{0} ", StunnedDesc).Color(suds.Fancy, false);
             Console.WriteLine();
         }
 
@@ -314,26 +334,26 @@ namespace suds
         public void TakeDamage(int damage, bool IsCrit)
         {
             Stats.Health -= damage;
-            String.Format("{0} recoils in pain. ", this.Name).Color(suds.Normal, false);
-            if (Stats.Health / (float)Stats.MaxHealth <= 0.5) "It looks bloodied.".Color(suds.Alert, false);
-            else if (Stats.Health / (float)Stats.MaxHealth <= 0.2) "It's near death!".Color(suds.Error, false);
+            String.Format("{0} ", PainDesc).Color(suds.Normal, false);
+            if (Stats.Health / (float)Stats.MaxHealth <= 0.5) String.Format("{0} ", HalfDeadDesc).Color(suds.Alert, false);
+            else if (Stats.Health / (float)Stats.MaxHealth <= 0.2) String.Format("{0} ", MostlyDeadDesc).Color(suds.Error, false);
         }
 
         public void Die(bool IsCritOrOverkill)
         {
             var room = Hero.CurrentRoom;
             var gold = Dice.RollRange(2, 6); //2-6 gold
-            "The rat has been slain. ".Color(suds.Death, false);
+            String.Format("{0} ", DeathDesc).Color(suds.Death, false);
             if (IsCritOrOverkill)
             {
-                "It explodes! ".Color(suds.Success, false);
+                String.Format("{0} ", DeathCritDesc).Color(suds.Success, false);
                 ///TODO: add an extra item on crit, with a better roll
                 
                 gold += 3;
             }
             ///TODO: add items to the room.
 
-            String.Format("The rat drops {0} gold.",gold).Color(suds.Loot, false);
+            String.Format(DropGoldDesc,gold).Color(suds.Loot, false);
             room.gold += gold;
             IsDead = true;
             IsHostile = false;

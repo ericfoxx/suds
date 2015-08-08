@@ -18,6 +18,7 @@ namespace suds
         private static bool quit { get; set; }
         public static string input { get; set; }
         public static string prevInput { get; set; }
+        public static List<ItemType> ItemTypes { get; set; }
         public static List<Skill> Skills { get; set; }
         public static List<Area> Areas { get; set; }
         public static bool heartbeat { get; set; }
@@ -52,6 +53,7 @@ namespace suds
         /// </summary>
         public static void Init()
         {
+            InitItemTypes();
             InitStartingArea();
             InitSkills();
 
@@ -81,7 +83,7 @@ namespace suds
                     }
                     Hero.DecSkillTimers();
                     Hero.HealthRegen();
-                    Hero.CurrentRoom.mobs
+                    Hero.CurrentRoom.Mobs
                         .Where(m => !m.GetIsDead() && m.GetIsStunned()).ToList()
                         .ForEach(m => m.DecStunCounter());
                 }
@@ -100,7 +102,21 @@ namespace suds
             var startingRoom = new Room("Starting Room", "This is the room you start in. It looks very normal.");
             startingRoom.gold = 2;
             var rat = new Mob();
-            startingRoom.mobs = new List<IMob> { rat };
+            startingRoom.Mobs = new List<IMob> { rat };
+            var sword = new Item
+            {
+                Name = "Sword",
+                Desc = "a simple sword",
+                BaseValue = 10,
+                Rarity = ItemRarity.Common,
+                Type = ItemTypes.First(s => string.Equals(s.Name,"Sword")),
+                CombatMods = {
+                    PhyAtk = 3,
+                    Dmg = 2
+                },
+                AttackAction = delegate() { "You strike with the sword! ".Color(suds.Normal, false); }
+            };
+            rat.Items.Add(sword);
             Hero.CurrentRoom = startingRoom;
             startingArea.CurrentRoom = startingRoom;
 
@@ -114,6 +130,18 @@ namespace suds
             Hero.CurrentArea = Areas[0];
 
             startingRoom.Describe();
+        }
+
+        internal static void InitItemTypes()
+        {
+            ItemTypes = new List<ItemType>{
+                new ItemType{
+                    Name = "Sword"
+                },
+                new ItemType{
+                    Name = "Potion"
+                }
+            };
         }
 
         internal static void InitSkills()
@@ -196,7 +224,7 @@ namespace suds
             if (string.IsNullOrWhiteSpace(args) || string.Equals(args, "rat", StringComparison.InvariantCultureIgnoreCase))
             {
                 var rat = new Mob();
-                Hero.CurrentRoom.mobs.Add(rat);
+                Hero.CurrentRoom.Mobs.Add(rat);
                 "A rat suddenly appears in the room!".Color(suds.Magic);
             }
             else if (string.Equals(args, "ratking", StringComparison.InvariantCultureIgnoreCase))
@@ -216,7 +244,7 @@ namespace suds
                     DropGoldDesc = "The rat king drops {0} gold"
                 };
                 ratKing.Name = "TheRatKing";
-                Hero.CurrentRoom.mobs.Add(ratKing);
+                Hero.CurrentRoom.Mobs.Add(ratKing);
                 "Out of the corner of your eye, you notice a horrible writhing mass of rats appear - it's a *Rat King*!".Color(suds.Magic);
             }
             

@@ -183,7 +183,7 @@ namespace suds
         {
             var area = Hero.CurrentArea;
             ///TODO: Disambiguate null arg 'grab'
-            //for now, just grab gold
+            //for now, just grab gold & items
             var gold = area.CurrentRoom.gold;
             if (String.IsNullOrEmpty(args) && gold > 0)
             {
@@ -195,6 +195,16 @@ namespace suds
                     area.CurrentRoom.gold = 0;
                     string.Format("You pick up {0} gold.", gold).Color(suds.Loot);
                 }
+            }
+            //items
+            if (Hero.CurrentRoom.Items.Count > 0)
+            {
+                foreach (var item in Hero.CurrentRoom.Items)
+                {
+                    String.Format("You pick up {0}.", item.Desc).Color(suds.Loot);
+                    Hero.Items.Add(item);
+                }
+                Hero.CurrentRoom.Items.Clear();
             }
         }
 

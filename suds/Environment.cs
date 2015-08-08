@@ -26,17 +26,17 @@ namespace suds
         ///TODO: Add description types to Room class
 
         //room contents
-        public List<IMob> mobs { get; set; }
-        //public List<IItem> items { get; set; }
+        public List<IMob> Mobs { get; set; }
+        public List<Item> Items { get; set; }
         public int gold { get; set; }
         ///TODO: Add more object types to rooms. Traps?
 
         public Room(string name)
         {
             Name = name;
-            ID = suds.NextRoomID;
-            suds.NextRoomID++;
+            ID = suds.NextRoomID++;
             Described = false;
+            Items = new List<Item>();
         }
 
         public Room(string name, string desc)
@@ -72,9 +72,10 @@ namespace suds
             exits += (Down != null) ? "Down " : "";
             exits.Color(suds.Normal);
 
-            if (mobs != null) mobs.ForEach(m => m.Describe());
+            if (Mobs != null) Mobs.ForEach(m => m.Describe());
 
             ///TODO: Describe items in Room
+            if (Items.Count > 0) Items.ForEach(i => i.GetShortDescription());
 
             if (gold > 0) String.Format("There is {0} gold on the floor.", gold).Color(suds.Loot);
 
@@ -116,8 +117,8 @@ namespace suds
 
         public bool GetAnyHostiles()
         {
-            if (mobs == null) return false;
-            var anyHostiles = mobs.Any(m => m.GetIsHostile() && !m.GetIsStunned());
+            if (Mobs == null) return false;
+            var anyHostiles = Mobs.Any(m => m.GetIsHostile() && !m.GetIsStunned());
             return anyHostiles;
         }
     }
@@ -127,9 +128,9 @@ namespace suds
         public static void GetTarget()
         {
             var room = Hero.CurrentRoom;
-            if (room.mobs != null && !room.mobs.All(m => m.GetIsDead()))
+            if (room.Mobs != null && !room.Mobs.All(m => m.GetIsDead()))
             {
-                Hero.CurrentTarget = (from m in room.mobs
+                Hero.CurrentTarget = (from m in room.Mobs
                                              where m.GetIsDead() == false
                                              orderby m.GetStatBlock().Health
                                              select m).First();
@@ -244,12 +245,12 @@ namespace suds
             var room = Hero.CurrentRoom;
             var pDef = Hero.Stats.PhysicalDefense;
             int i, cnt, mAtt, procRoll;
-            for (i = 0, cnt = room.mobs.Count; i < cnt; i++)
+            for (i = 0, cnt = room.Mobs.Count; i < cnt; i++)
             {
-                if (room.mobs[i].GetIsHostile())
+                if (room.Mobs[i].GetIsHostile())
                 {
-                    String.Format("{0} attacks you. ", room.mobs[i].GetName()).Color(suds.Error, false);
-                    mAtt = room.mobs[i].GetStatBlock().PhysicalAttack;
+                    String.Format("{0} attacks you. ", room.Mobs[i].GetName()).Color(suds.Error, false);
+                    mAtt = room.Mobs[i].GetStatBlock().PhysicalAttack;
                     var attRoll = Dice.RollRange(1, mAtt);
                     if (attRoll > pDef)
                     {
@@ -263,7 +264,7 @@ namespace suds
                             var dmg = Dice.RollRange(1, 3);
                             Hero.Stats.Health -= dmg;
                             "The attack hits!".Color(suds.Error);
-                            if (Hero.Stats.Health <= 0) Hero.Die(String.Format("You have been slain by {0}.", room.mobs[i].GetName()));
+                            if (Hero.Stats.Health <= 0) Hero.Die(String.Format("You have been slain by {0}.", room.Mobs[i].GetName()));
                         }
                     }
                     else
@@ -286,8 +287,7 @@ namespace suds
 
         public Area(string name, string description)
         {
-            ID = suds.NextAreaID;
-            suds.NextAreaID++;
+            ID = suds.NextAreaID++;
             Name = name;
             Description = description;
 

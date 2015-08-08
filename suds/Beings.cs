@@ -106,11 +106,17 @@ namespace suds
         public static string Name { get; set; }
         public static IOccupation Occupation { get; set; }
         public static StatBlock Stats { get; set; }
+
         public static Room CurrentRoom { get; set; }
         public static Area CurrentArea { get; set; }
         public static IMob CurrentTarget { get; set; }
         public static int XP { get; set; }
+
         public static int Gold { get; set; }
+        public static List<Item> Items { get; set; }
+        public static Item LeftHand { get; set; }
+        public static Item RightHand { get; set; }
+
         public static List<Skill> Skills { get; set; }
         public static Skill Skill1 { get; set; }
         public static Skill Skill2 { get; set; }
@@ -120,17 +126,20 @@ namespace suds
         static Hero()
         {
             Occupation = new Warrior(); ///TODO: implement more occupations!
-            Stats = new StatBlock(20, Dice.RollRange(12,17), Dice.RollRange(8, 10), Dice.RollRange(7, 10), Dice.RollRange(8, 10));
+            Stats = new StatBlock(20, 20, 10, 6, 8);
             Gold = 10;
             XP = 0;
             CurrentTarget = null;
             Skills = new List<Skill>();
+            Items = new List<Item>();
         }
 
         public static void Describe()
         {
             //TODO: Better player description system (items, occ, backstory/quests/title?)
-            "You are a fearsome warrior!".Color(suds.Normal);
+            "You are a fearsome warrior! You are carrying: ".Color(suds.Normal);
+            if (Items.Count == 0) "Nothing.".Color(suds.Normal);
+            else Items.ForEach(i => i.GetShortDescription());
             Stats.Display();
         }
 
@@ -262,7 +271,8 @@ namespace suds
         public int ID { get; set; }
         public string Name { get; set; }
         public int BaseXP { get; set; }
-        
+
+        public List<Item> Items { get; set; }
         public StatBlock Stats { get; set; }
         public int StunCounter { get; set; }
 
@@ -282,11 +292,11 @@ namespace suds
 
         public Mob()
         {
-            ID = suds.NextMobID;
+            ID = suds.NextMobID++;
             Name = "mob";
-            suds.NextMobID++;
             Stats = new StatBlock(Dice.RollRange(6,12), Dice.RollRange(3, 9), Dice.RollRange(3, 8), Dice.RollRange(3, 7), Dice.RollRange(1, 2));
             IsHostile = (Dice.RollRange(1,10) > 9) ? true : false; //10% chance 
+            Items = new List<Item>();
             Desc = String.Format("There is a generic mob here: {0}.", GetName());
             DeadDesc = "There is something dead here.";
             HalfDeadDesc = "It is bloodied!";
@@ -349,9 +359,15 @@ namespace suds
                 String.Format("{0} ", DeathCritDesc).Color(suds.Success, false);
                 ///TODO: add an extra item on crit, with a better roll
                 
-                gold += 3;
+                gold *= 2;
             }
-            ///TODO: add items to the room.
+            //items
+            foreach(var item in Items)
+            {
+                String.Format("{0} drops {1}. ", GetName(), item.Desc).Color(suds.Loot, false);
+                Hero.CurrentRoom.Items.Add(item);
+            }
+            if (Items.Count > 0) Items.Clear();
 
             String.Format(DropGoldDesc,gold).Color(suds.Loot, false);
             room.gold += gold;

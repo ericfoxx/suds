@@ -59,7 +59,10 @@ namespace suds
         public static int NextRoomID = 0;
         public static int NextMobID = 0;
         public static int NextAreaID = 0;
+
         public static int NextItemID = 0;
+        public static int NextItemTypeID = 0;
+        public static int NextItemPropID = 0;
 
         public static string Prompt()
         {

@@ -75,20 +75,12 @@ namespace suds
         }
 
         public void CalcScaledAttributes()
-        {// Wolfram Alpha: "plot (10x^0.3)/(0.2x^0.3+1) from x = -1 to x = 15"
-            //(10x^0.3)/(0.2x^0.3+1)
-            ScaledCritChance = Scale(CriticalChance);
-            ScaledFearChance = Scale(FearChance);
-            ScaledDodgeChance = Scale(DodgeChance);
-            ScaledStunChance = Scale(StunChance);
-            ScaledLifeStealChance = Scale(LifeSteal);
-        }
-
-        private int Scale(int stat)
         {
-            var pow = Math.Pow((double)stat, 0.3);
-            var scaledStat = (int)Math.Floor((10 * pow) / (1 + 0.2 * pow));
-            return scaledStat;
+            ScaledCritChance = CriticalChance.Scale();
+            ScaledFearChance = FearChance.Scale();
+            ScaledDodgeChance = DodgeChance.Scale();
+            ScaledStunChance = StunChance.Scale();
+            ScaledLifeStealChance = LifeSteal.Scale();
         }
 
         public void Display()
@@ -136,8 +128,18 @@ namespace suds
 
         public static void Describe()
         {
+            //var wieldingTwoHanded = 
+            //    ((Hero.LeftHand != null 
+            //    && Hero.LeftHand.SpecialProps.Any(
+            //        p => p.Name == "IsTwoHanded" && p.BoolVal == true)
+            //    ) ? true : false);
+            var wieldingTwoHanded = (Hero.LeftHand != null && Hero.RightHand != null && Hero.LeftHand.ID == Hero.RightHand.ID);
+            
             //TODO: Better player description system (items, occ, backstory/quests/title?)
-            "You are a fearsome warrior! You are carrying: ".Color(suds.Normal);
+            "You are a fearsome warrior!".Color(suds.Normal);
+            if (wieldingTwoHanded) string.Format("You are wielding {0}.", Hero.LeftHand.Desc).Color(suds.Success);
+            else string.Format("You are wielding {0} in your left hand and {1} in your right", (Hero.LeftHand == null) ? "nothing" : Hero.LeftHand.Desc, (Hero.RightHand == null) ? "nothing" : Hero.RightHand.Desc).Color(suds.Success);
+            "You are carrying: ".Color(suds.Normal);
             if (Items.Count == 0) "Nothing.".Color(suds.Normal);
             else Items.ForEach(i => i.GetShortDescription());
             Stats.Display();
@@ -217,6 +219,43 @@ namespace suds
             {
                 var regen = (int)Math.Floor(Stats.MaxHealth / (decimal)Stats.HealthRegen);
                 Stats.Health = Math.Min(Stats.MaxHealth, Stats.Health + regen);
+            }
+        }
+
+        public static void Wield(Item item)
+        {
+            var weaponType = Runtime.ItemTypes.Single(i => String.Equals(i.Name, "Weapon"));
+            if (item.Type != weaponType)
+            {
+                "Sorry, you cannot wield that.".Color(suds.Error);
+                return;
+            }
+            if (item.SpecialProps.Count != 0 
+                && item.SpecialProps.Any(
+                    s => String.Equals(s.Name,"IsTwoHanded")))
+            {
+                if (item.SpecialProps.Single(
+                        s => String.Equals(s.Name,"IsTwoHanded"))
+                    .BoolVal == false)
+                {
+                    //one-handed -- check for empty hand
+                    if (LeftHand == null) LeftHand = item;
+                    else if (RightHand == null) RightHand = item;
+                    else
+                    {
+                        //don't ask here -- they should figure it out by comparing
+                        "Your hands are full. Please un-equip a weapon and try again.".Color(suds.Error);
+                    }
+                }
+                else
+                {
+                    //two-handed
+                    if (LeftHand == null && RightHand == null) LeftHand = RightHand = item;
+                    else
+                    {
+                        "Your hands are full and this item is two-handed. Please un-equip your weapon(s) and try again.".Color(suds.Error);
+                    }
+                }
             }
         }
     }

@@ -117,12 +117,12 @@ namespace suds
                 case 'h':
                     Help();
                     break;
-                case 'a':
-                    Attack(args);
-                    Runtime.heartbeat = true;
-                    break;
                 case 'g':
                     Grab(args);
+                    Runtime.heartbeat = true;
+                    break;
+                case 'a':
+                    Attack(args);
                     Runtime.heartbeat = true;
                     break;
                 case '1':
@@ -172,7 +172,7 @@ namespace suds
                 case '!':
                     Runtime.DebugGenerate(args);
                     break;
-                case 'i': ///TODO: Parser - Implement inventory case
+                case 'i': ///TODO: Parser - Implement inventory case in interactive menu (with item equipping!)
                 default:
                     "Not implemented yet. Good job picking though!".Color(suds.Error);
                     break;
@@ -210,7 +210,6 @@ namespace suds
 
         private static void Attack(string args, Skill skill = null)
         {
-            var room = Hero.CurrentRoom;
             var t = Hero.CurrentTarget;
             ///TODO: process Attack args
             if (t != null)

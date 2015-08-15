@@ -110,6 +110,7 @@ namespace suds
         public int? IntMinVal { get; set; }
         public int? IntMaxVal { get; set; }
         public string StrVal { get; set; }
+        public bool? BoolVal { get; set; }
 
         public ItemProp()
         {

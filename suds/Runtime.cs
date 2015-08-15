@@ -53,7 +53,7 @@ namespace suds
         /// </summary>
         public static void Init()
         {
-            InitItemTypes();
+            InitItemInfo();
             InitStartingArea();
             InitSkills();
 
@@ -103,20 +103,15 @@ namespace suds
             startingRoom.gold = 2;
             var rat = new Mob();
             startingRoom.Mobs = new List<IMob> { rat };
-            var sword = new Item
+            var gem = new Item
             {
-                Name = "Sword",
-                Desc = "a simple sword",
-                BaseValue = 10,
+                Name = "Gem",
+                Desc = "a pretty gem",
+                BaseValue = 100,
                 Rarity = ItemRarity.Common,
-                Type = ItemTypes.First(s => string.Equals(s.Name,"Sword")),
-                CombatMods = {
-                    PhyAtk = 3,
-                    Dmg = 2
-                },
-                AttackAction = delegate() { "You strike with the sword! ".Color(suds.Normal, false); }
+                Type = ItemTypes.Single(s => string.Equals(s.Name,"Treasure"))
             };
-            rat.Items.Add(sword);
+            rat.Items.Add(gem);
             Hero.CurrentRoom = startingRoom;
             startingArea.CurrentRoom = startingRoom;
 
@@ -129,17 +124,46 @@ namespace suds
             Areas.Add(startingArea);
             Hero.CurrentArea = Areas[0];
 
+            ///TODO: remove this block once we can equip things
+            var sword = new Item
+            {
+                Name = "Sword",
+                Desc = "a simple sword",
+                BaseValue = 10,
+                Rarity = ItemRarity.Common,
+                Type = ItemTypes.Single(s => string.Equals(s.Name, "Weapon")),
+                CombatMods =
+                {
+                    PhyAtk = 3,
+                    Dmg = 2
+                },
+                SpecialProps = new List<ItemProp>{
+                        new ItemProp{
+                        Name = "IsTwoHanded",
+                        DisplayName = "is two handed",
+                        BoolVal = false
+                    }
+                },
+                AttackAction = delegate() { "You strike with the sword! ".Color(suds.Normal, false); }
+            };
+            Hero.Items.Add(sword);
+            Hero.Wield(sword);
+            ///TODO: move mod calc to own function, inv screen w/ equipping, armor
+
             startingRoom.Describe();
         }
 
-        internal static void InitItemTypes()
+        internal static void InitItemInfo()
         {
             ItemTypes = new List<ItemType>{
                 new ItemType{
-                    Name = "Sword"
+                    Name = "Weapon"
                 },
                 new ItemType{
                     Name = "Potion"
+                },
+                new ItemType{
+                    Name = "Treasure"
                 }
             };
         }

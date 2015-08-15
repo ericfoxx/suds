@@ -57,6 +57,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Combat.cs" />
     <Compile Include="Environment.cs" />
     <Compile Include="Items.cs" />
     <Compile Include="Beings.cs" />

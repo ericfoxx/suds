@@ -149,6 +149,16 @@ namespace suds
             if (pctMod != 0.0M)
                 stat *= (int)Math.Ceiling(1.0M + pctMod);
         }
+
+        public static int Scale(this int stat, int mod = 0)
+        {
+            // Wolfram Alpha: "plot (10x^0.3)/(0.2x^0.3+1) from x = -1 to x = 15"
+            //(10x^0.3)/(0.2x^0.3+1)
+            var n = stat + mod;
+            var pow = Math.Pow((double)n, 0.3);
+            var scaledStat = (int)Math.Floor((10 * pow) / (1 + 0.2 * pow));
+            return scaledStat;
+        }
     }
 }
 

@@ -27,15 +27,24 @@ namespace suds
         public int Dmg { get; set; }
         public decimal DmgPct { get; set; }
 
+        public int Crit { get; set; }
+        public decimal CritPct { get; set; }
+
+        public int Fear { get; set; }
+        public decimal FearPct { get; set; }
+
         public int Resist { get; set; }
         public decimal ResistPct { get; set; }
+        
         public int LifeSteal { get; set; }
         public decimal LifeStealPct { get; set; }
 
         public int StunChance { get; set; }
         public decimal StunChancePct { get; set; }
+        
         public int StunDuration { get; set; }
         public decimal StunDurationPct { get; set; }
+        
         public int Dodge { get; set; }
         public decimal DodgePct { get; set; }
     }

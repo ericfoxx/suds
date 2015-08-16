@@ -74,7 +74,6 @@ namespace suds
 
             if (Mobs != null) Mobs.ForEach(m => m.Describe());
 
-            ///TODO: Describe items in Room
             if (Items.Count > 0) Items.ForEach(i => i.GetShortDescription());
 
             if (gold > 0) String.Format("There is {0} gold on the floor.", gold).Color(suds.Loot);

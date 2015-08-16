@@ -85,8 +85,6 @@ namespace suds
             if (skill != null)
             {
                 var mods = skill.Modifiers;
-                //say what it does
-                String.Format("{0} ", skill.Sound).Color(suds.Normal, false);
                 playerAttack += mods.PhyAtk;
                 playerAttack.PctMod(mods.PhyAtkPct); // (from suds.PctMod extension method)
                 dmgMod += mods.Dmg;
@@ -102,6 +100,10 @@ namespace suds
                 playerStunDur += mods.StunDuration;
                 playerStunDur.PctMod(mods.StunDurationPct);
             }
+
+            //Describe the attack
+            Hero.DescAttack(skill);
+
             //roll for damage
             ///TODO: implement magical attacks
 #if DEBUG
@@ -164,7 +166,6 @@ namespace suds
                 if (procRoll < playerStun.Scale())
                 {
                     "You stun your target with your powerful attack! ".Color(suds.Fancy, false);
-                    ///TODO: Add any appropriate stun (or other calc'd attrs) buffs to skills
                     target.SetStunned(playerStunDur);
                 }
 

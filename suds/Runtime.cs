@@ -129,6 +129,7 @@ namespace suds
             {
                 Name = "Sword",
                 Desc = "a simple sword",
+                ActionDesc = "You slash with your sword. ",
                 BaseValue = 10,
                 Rarity = ItemRarity.Common,
                 Type = ItemTypes.Single(s => string.Equals(s.Name, "Weapon")),
@@ -143,8 +144,8 @@ namespace suds
                         DisplayName = "is two handed",
                         BoolVal = false
                     }
-                },
-                AttackAction = delegate() { "You strike with the sword! ".Color(suds.Normal, false); }
+                }
+                //AttackAction = delegate() { "You strike with the sword! ".Color(suds.Normal, false); }
             };
             Hero.Items.Add(sword);
             Hero.Wield(sword);

@@ -26,6 +26,7 @@ namespace suds
         public int ID { get; set; }
         public string Name { get; set; }
         public string Desc { get; set; }
+        public string ActionDesc { get; set; }
         public int BaseValue { get; set; }
         public ItemRarity Rarity { get; set; }
         public ItemType Type { get; set; }

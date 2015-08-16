@@ -108,6 +108,7 @@ namespace suds
         public static List<Item> Items { get; set; }
         public static Item LeftHand { get; set; }
         public static Item RightHand { get; set; }
+        public static Wielded WieldState { get; set; }
 
         public static List<Skill> Skills { get; set; }
         public static Skill Skill1 { get; set; }
@@ -124,20 +125,14 @@ namespace suds
             CurrentTarget = null;
             Skills = new List<Skill>();
             Items = new List<Item>();
+            WieldState = Wielded.None;
         }
 
         public static void Describe()
         {
-            //var wieldingTwoHanded = 
-            //    ((Hero.LeftHand != null 
-            //    && Hero.LeftHand.SpecialProps.Any(
-            //        p => p.Name == "IsTwoHanded" && p.BoolVal == true)
-            //    ) ? true : false);
-            var wieldingTwoHanded = (Hero.LeftHand != null && Hero.RightHand != null && Hero.LeftHand.ID == Hero.RightHand.ID);
-            
             //TODO: Better player description system (items, occ, backstory/quests/title?)
             "You are a fearsome warrior!".Color(suds.Normal);
-            if (wieldingTwoHanded) string.Format("You are wielding {0}.", Hero.LeftHand.Desc).Color(suds.Success);
+            if (WieldState == Wielded.TwoH) string.Format("You are wielding {0}.", Hero.LeftHand.Desc).Color(suds.Success);
             else string.Format("You are wielding {0} in your left hand and {1} in your right", (Hero.LeftHand == null) ? "nothing" : Hero.LeftHand.Desc, (Hero.RightHand == null) ? "nothing" : Hero.RightHand.Desc).Color(suds.Success);
             "You are carrying: ".Color(suds.Normal);
             if (Items.Count == 0) "Nothing.".Color(suds.Normal);
@@ -257,6 +252,45 @@ namespace suds
                     }
                 }
             }
+
+            //Set Wielded state
+            if (LeftHand != null && RightHand != null)
+            {
+                WieldState = (LeftHand.ID == RightHand.ID) ? Wielded.TwoH : Wielded.Dual;
+            }
+            else if (LeftHand == null || RightHand == null)
+            {
+                WieldState = (LeftHand != null) ? Wielded.LH : Wielded.RH;
+            }
+            else WieldState = Wielded.None;
+        }
+
+        public static void DescAttack(Skill skill = null)
+        {
+            if (skill != null)
+            {
+                String.Format("{0} ", skill.Sound).Color(suds.Normal, false);
+                return;
+            }
+            switch (WieldState)
+            {
+                case Wielded.None:
+                    "You swing bare-handed. ".Color(suds.Normal, false);
+                    break;
+                case Wielded.TwoH:
+                case Wielded.LH:
+                    LeftHand.ActionDesc.Color(suds.Normal, false);
+                    break;
+                case Wielded.RH:
+                    RightHand.ActionDesc.Color(suds.Normal, false);
+                    break;
+                case Wielded.Dual:
+                    String.Format("You swing with your {0} and {1}. ", LeftHand.Name, RightHand.Name).Color(suds.Normal, false);
+                    break;
+                default:
+                    "YOUR WIELDSTATE IS UNDEF ".Color(suds.Error, false);
+                    break;
+            }
         }
     }
 
@@ -286,6 +320,15 @@ namespace suds
         {
             return true;
         }
+    }
+
+    public enum Wielded
+    {
+        None,
+        LH,
+        RH,
+        TwoH,
+        Dual
     }
 
     public interface IMob : IDescribable

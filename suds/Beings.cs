@@ -19,6 +19,9 @@ namespace suds
         public int MagicAttack { get; set; }
         public int PhysicalDefense { get; set; }
         public int MagicDefense { get; set; }
+
+        public int BaseDamage { get; set; }
+
         public int CriticalChance { get; set; }
         public int FearChance { get; set; }
         public int HealthRegen { get; set; }
@@ -62,6 +65,10 @@ namespace suds
         {
             PhysicalAttack = PhysicalDefense = (int)Math.Ceiling((Strength + Dexterity) / 2.0);
             MagicAttack = MagicDefense = (int)Math.Ceiling((Intellect + Spirit) / 2.0);
+
+            var stats = new List<int> { Strength, Dexterity, Intellect, Spirit };
+            BaseDamage = stats.Max(); ///TODO: Pick a better damage calculation
+
             CriticalChance = (int)Math.Ceiling((Dexterity + Spirit) / 2.0);
             FearChance = (int)Math.Ceiling((Strength + Intellect) / 2.0);
             HealthRegen = (int)Math.Floor((Strength + Spirit) / 2.0);
@@ -91,6 +98,45 @@ namespace suds
             String.Format("Intellect:     {0,4} | Spirit:     {1,4} | Magical Attack:   {2,4}", Intellect.ToString(), Spirit.ToString(), MagicAttack.ToString()).Color(suds.Normal);
             String.Format("Skill Refresh: {0,4} | Life Steal: {1,4} | Magical Defense:  {2,4}", SkillRefreshChance.ToString(), LifeSteal.ToString(), MagicDefense.ToString()).Color(suds.Normal);
         }
+
+        public StatBlock AddMods(CombatModifiers mods)
+        {
+            var ret = new StatBlock(this.MaxHealth, this.Strength, this.Dexterity, this.Intellect, this.Spirit);
+            ret.CalcDerivedAttributes();
+
+            ret.PhysicalAttack += mods.PhyAtk;
+            ret.PhysicalAttack.PctMod(mods.PhyAtkPct);
+            ret.PhysicalDefense += mods.PhyDef;
+            ret.PhysicalDefense.PctMod(mods.PhyDefPct);
+
+            ret.MagicAttack += mods.MagAtk;
+            ret.MagicAttack.PctMod(mods.MagAtkPct);
+            ret.MagicDefense += mods.MagDef;
+            ret.MagicDefense.PctMod(mods.MagDefPct);
+
+            ret.BaseDamage += mods.Dmg;
+            ret.BaseDamage.PctMod(mods.DmgPct);
+
+            ret.CriticalChance += mods.Crit;
+            ret.CriticalChance.PctMod(mods.CritPct);
+            ret.FearChance += mods.Fear;
+            ret.FearChance.PctMod(mods.FearPct);
+            ret.HealthRegen += mods.HealthRegen;
+            ret.HealthRegen.PctMod(mods.HealthRegenPct);
+
+            ret.LifeSteal += mods.LifeSteal;
+            ret.LifeSteal.PctMod(mods.LifeStealPct);
+            ret.SkillRefreshChance += mods.SkillRefresh;
+            ret.SkillRefreshChance.PctMod(mods.SkillRefreshPct);
+            ret.DodgeChance += mods.Dodge;
+            ret.DodgeChance.PctMod(mods.DodgePct);
+            ret.StunChance += mods.StunChance;
+            ret.StunChance.PctMod(mods.StunChancePct);
+            ret.StunDuration += mods.StunDuration;
+            ret.StunDuration.PctMod(mods.StunDurationPct);
+
+            return ret;
+        }
     }
     
     public static class Hero
@@ -109,6 +155,7 @@ namespace suds
         public static Item LeftHand { get; set; }
         public static Item RightHand { get; set; }
         public static Wielded WieldState { get; set; }
+        public static Item Boots { get; set; }
 
         public static List<Skill> Skills { get; set; }
         public static Skill Skill1 { get; set; }
@@ -263,6 +310,11 @@ namespace suds
                 WieldState = (LeftHand != null) ? Wielded.LH : Wielded.RH;
             }
             else WieldState = Wielded.None;
+        }
+
+        public static void Equip(Item item)
+        {
+            if (item.Type.Name == "FootArmor") Boots = item;
         }
 
         public static void DescAttack(Skill skill = null)

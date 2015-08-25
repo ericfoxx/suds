@@ -35,9 +35,15 @@ namespace suds
 
         public int Resist { get; set; }
         public decimal ResistPct { get; set; }
+
+        public int HealthRegen { get; set; }
+        public decimal HealthRegenPct { get; set; }
         
         public int LifeSteal { get; set; }
         public decimal LifeStealPct { get; set; }
+
+        public int SkillRefresh { get; set; }
+        public decimal SkillRefreshPct { get; set; }
 
         public int StunChance { get; set; }
         public decimal StunChancePct { get; set; }
@@ -47,6 +53,44 @@ namespace suds
         
         public int Dodge { get; set; }
         public decimal DodgePct { get; set; }
+
+        public void Describe()
+        {
+            foreach (var prop in this.GetType().GetProperties())
+            {
+                if (prop.PropertyType.Name.Equals("Int32"))
+                {
+                    int val = (int)prop.GetValue(this, null);
+                    if (val != 0) String.Format("{0}: {1}", prop.Name, val).Color(suds.Normal);
+                }
+                else if (prop.PropertyType.Name.Equals("Decimal"))
+                {
+                  var val = (decimal)prop.GetValue(this, null);
+                  if (val != 0.0m) String.Format("{0}: {1}", prop.Name, val).Color(suds.Normal);
+                }
+            }
+        }
+
+        public CombatModifiers Add(CombatModifiers other)
+        {
+            var ret = new CombatModifiers();
+            foreach (var prop in this.GetType().GetProperties())
+            {
+                if (prop.PropertyType.Name.Equals("Int32"))
+                {
+                    var val = (int)prop.GetValue(this, null);
+                    var oVal = (int)prop.GetValue(other, null);
+                    prop.SetValue(ret, val + oVal);
+                }
+                else if (prop.PropertyType.Name.Equals("Decimal"))
+                {
+                    var val = (decimal)prop.GetValue(this, null);
+                    var oVal = (decimal)prop.GetValue(other, null);
+                    prop.SetValue(ret, val + oVal);
+                }
+            }
+            return ret;
+        }
     }
 
     public class Skill

@@ -25,12 +25,7 @@ namespace suds
         public static void AttackMob(Skill skill = null)
         {
             var playerStats = Hero.Stats;
-            var playerAttack = playerStats.PhysicalAttack;
-            var playerCrit = playerStats.CriticalChance;
-            var playerFear = playerStats.FearChance;
-            var playerLifeSteal = playerStats.LifeSteal;
-            var playerStun = playerStats.StunChance;
-            var playerStunDur = playerStats.StunDuration;
+            StatBlock calcdStats = new StatBlock();
 
             var target = Hero.CurrentTarget;
             var targetStats = target.GetStatBlock();
@@ -41,42 +36,21 @@ namespace suds
             //TODO: apply weapon and passive skill/xp-grid-buff dmgMods to dmgMod as well
             var dmgMod = 0;
 
-            if (Hero.LeftHand != null)
+            if (Hero.WieldState == Wielded.Dual || Hero.WieldState == Wielded.LH || Hero.WieldState == Wielded.TwoH)
             {
                 var lh = Hero.LeftHand;
-                playerAttack += lh.CombatMods.PhyAtk;
-                playerAttack.PctMod(lh.CombatMods.PhyAtkPct);
+                calcdStats = playerStats.AddMods(lh.CombatMods);
                 dmgMod += lh.CombatMods.Dmg;
                 dmgMod.PctMod(lh.CombatMods.DmgPct);
-                playerCrit += lh.CombatMods.Crit;
-                playerCrit.PctMod(lh.CombatMods.CritPct);
-                playerFear += lh.CombatMods.Fear;
-                playerFear.PctMod(lh.CombatMods.FearPct);
-                playerLifeSteal += lh.CombatMods.LifeSteal;
-                playerLifeSteal.PctMod(lh.CombatMods.LifeStealPct);
-                playerStun += lh.CombatMods.StunChance;
-                playerStun.PctMod(lh.CombatMods.StunChancePct);
-                playerStunDur += lh.CombatMods.StunDuration;
-                playerStunDur.PctMod(lh.CombatMods.StunDurationPct);
             }
-            if (Hero.RightHand != null && Hero.LeftHand.ID != Hero.RightHand.ID)
+            if (Hero.WieldState == Wielded.RH || Hero.WieldState == Wielded.Dual)
             {
                 ///TODO: Implement scaling 2-hand damage nerf reduction skill for warriors?
                 var rh = Hero.RightHand;
-                playerAttack += rh.CombatMods.PhyAtk;
-                playerAttack.PctMod(rh.CombatMods.PhyAtkPct);
+                if (Hero.LeftHand == null) calcdStats = playerStats.AddMods(rh.CombatMods);
+                else calcdStats = calcdStats.AddMods(rh.CombatMods);
                 dmgMod += rh.CombatMods.Dmg;
                 dmgMod.PctMod(rh.CombatMods.DmgPct);
-                playerCrit += rh.CombatMods.Crit;
-                playerCrit.PctMod(rh.CombatMods.CritPct);
-                playerFear += rh.CombatMods.Fear;
-                playerFear.PctMod(rh.CombatMods.FearPct);
-                playerLifeSteal += rh.CombatMods.LifeSteal;
-                playerLifeSteal.PctMod(rh.CombatMods.LifeStealPct);
-                playerStun += rh.CombatMods.StunChance;
-                playerStun.PctMod(rh.CombatMods.StunChancePct);
-                playerStunDur += rh.CombatMods.StunDuration;
-                playerStunDur.PctMod(rh.CombatMods.StunDurationPct);
             }
 
             
@@ -85,20 +59,9 @@ namespace suds
             if (skill != null)
             {
                 var mods = skill.Modifiers;
-                playerAttack += mods.PhyAtk;
-                playerAttack.PctMod(mods.PhyAtkPct); // (from suds.PctMod extension method)
+                calcdStats = calcdStats.AddMods(mods);
                 dmgMod += mods.Dmg;
                 dmgMod.PctMod(mods.DmgPct);
-                playerCrit += mods.Crit;
-                playerCrit.PctMod(mods.CritPct);
-                playerFear += mods.Fear;
-                playerFear.PctMod(mods.FearPct);
-                playerLifeSteal += mods.LifeSteal;
-                playerLifeSteal.PctMod(mods.LifeStealPct);
-                playerStun += mods.StunChance;
-                playerStun.PctMod(mods.StunChancePct);
-                playerStunDur += mods.StunDuration;
-                playerStunDur.PctMod(mods.StunDurationPct);
             }
 
             //Describe the attack
@@ -107,9 +70,9 @@ namespace suds
             //roll for damage
             ///TODO: implement magical attacks
 #if DEBUG
-            String.Format("(pAtk:{0} tDef:{1}) ", playerAttack, targetDef).Color(suds.Normal, false);
+            String.Format("(pAtk:{0} tDef:{1}) ", calcdStats.PhysicalAttack, targetDef).Color(suds.Normal, false);
 #endif
-            var roll = Dice.RollRange(1, playerAttack);
+            var roll = Dice.RollRange(1, calcdStats.PhysicalAttack);
             if (roll > targetDef)
             {
                 //hit! Compute damage (usually based on weapon and skill)
@@ -121,9 +84,9 @@ namespace suds
                 //crit calc
                 // roll 1-100, if < critChance, CRIT!
                 procRoll = Dice.RollPercent();
-                var didCrit = (procRoll <= playerCrit.Scale()) ? true : false;
+                var didCrit = (procRoll <= calcdStats.CriticalChance.Scale()) ? true : false;
 #if DEBUG
-                String.Format("(critChance:{0} roll:{1}) ", playerCrit.Scale(), procRoll).Color(suds.Alert, false);
+                String.Format("(critChance:{0} roll:{1}) ", calcdStats.CriticalChance.Scale(), procRoll).Color(suds.Alert, false);
 #endif
                 if (didCrit)
                 {
@@ -132,7 +95,7 @@ namespace suds
                 }
                 //steal life from mob
                 procRoll = Dice.RollPercent();
-                if (procRoll < playerLifeSteal.Scale())
+                if (procRoll < calcdStats.LifeSteal.Scale())
                 {
                     var life = (int)Math.Ceiling(Hero.Stats.MaxHealth / 15.0);
                     dmg += life;
@@ -157,16 +120,16 @@ namespace suds
                 }
                 //proc Fear & Stun
                 procRoll = Dice.RollPercent();
-                if (procRoll < playerFear.Scale())
+                if (procRoll < calcdStats.FearChance.Scale())
                 {
                     "Your target is so afraid of you, it stops attacking! ".Color(suds.Fancy, false);
                     target.SetIsHostile(false); //It's afraid, so it cowers.
                 }
                 procRoll = Dice.RollPercent();
-                if (procRoll < playerStun.Scale())
+                if (procRoll < calcdStats.StunChance.Scale())
                 {
                     "You stun your target with your powerful attack! ".Color(suds.Fancy, false);
-                    target.SetStunned(playerStunDur);
+                    target.SetStunned(calcdStats.StunDuration);
                 }
 
                 //Hero.CurrentTarget = target;
@@ -184,7 +147,21 @@ namespace suds
         public static void MobsAttackPlayer()
         {
             var room = Hero.CurrentRoom;
-            var pDef = Hero.Stats.PhysicalDefense;
+            var calcdStats = new StatBlock();
+
+            if (Hero.WieldState == Wielded.Dual || Hero.WieldState == Wielded.LH || Hero.WieldState == Wielded.TwoH)
+            {
+                var lh = Hero.LeftHand;
+                calcdStats = Hero.Stats.AddMods(lh.CombatMods);
+            }
+            if (Hero.WieldState == Wielded.RH || Hero.WieldState == Wielded.Dual)
+            {
+                ///TODO: Implement scaling 2-hand damage nerf reduction skill for warriors?
+                var rh = Hero.RightHand;
+                if (Hero.LeftHand == null) calcdStats = Hero.Stats.AddMods(rh.CombatMods);
+                else calcdStats = calcdStats.AddMods(rh.CombatMods);
+            }
+
             int i, cnt, mAtt, procRoll;
             for (i = 0, cnt = room.Mobs.Count; i < cnt; i++)
             {
@@ -193,16 +170,16 @@ namespace suds
                     String.Format("{0} attacks you. ", room.Mobs[i].GetName()).Color(suds.Error, false);
                     mAtt = room.Mobs[i].GetStatBlock().PhysicalAttack;
                     var attRoll = Dice.RollRange(1, mAtt);
-                    if (attRoll > pDef)
+                    if (attRoll > calcdStats.PhysicalDefense)
                     {
                         procRoll = Dice.RollPercent();
-                        if (procRoll < Hero.Stats.ScaledDodgeChance)
+                        if (procRoll < calcdStats.DodgeChance.Scale(Hero.Boots.CombatMods.Dodge))
                         {
                             "You dodge gracefully! ".Color(suds.Fancy);
                         }
                         else
                         {
-                            var dmg = Dice.RollRange(1, 3);
+                            var dmg = (room.Mobs[i].GetStatBlock().BaseDamage / 3 ) + Dice.RollRange(1, 3);
                             Hero.Stats.Health -= dmg;
                             "The attack hits!".Color(suds.Error);
                             if (Hero.Stats.Health <= 0) Hero.Die(String.Format("You have been slain by {0}.", room.Mobs[i].GetName()));

@@ -71,8 +71,6 @@ namespace suds
                     "Sorry, I can't understand that.".Color(suds.Error);
                 }
 
-                ///TODO: discriminate between world-mutating player actions and others (to prevent combat when looking, etc.)
-
                 //mutate world
                 //for example, combat, health regen, etc.
                 if (heartbeat){
@@ -138,8 +136,8 @@ namespace suds
                     PhyAtk = 3,
                     Dmg = 2
                 },
-                SpecialProps = new List<ItemProp>{
-                        new ItemProp{
+                SpecialProps = new List<SpecialProp>{
+                        new SpecialProp{
                         Name = "IsTwoHanded",
                         DisplayName = "is two handed",
                         BoolVal = false
@@ -147,9 +145,25 @@ namespace suds
                 }
                 //AttackAction = delegate() { "You strike with the sword! ".Color(suds.Normal, false); }
             };
+            var boots = new Item
+            {
+                Name = "Boots",
+                Desc = "a pair of simple boots",
+                BaseValue = 10,
+                Rarity = ItemRarity.Common,
+                Type = ItemTypes.Single(s => string.Equals(s.Name, "FootArmor")),
+                CombatMods =
+                {
+                    PhyDef = 3,
+                    Dodge = 2
+                }
+            };
             Hero.Items.Add(sword);
             Hero.Wield(sword);
-            ///TODO: move mod calc to own function, inv screen w/ equipping, armor
+            Hero.Items.Add(boots);
+            Hero.Equip(boots);
+            ///TODO: inv screen w/ equipping
+            ///TODO: armor
 
             startingRoom.Describe();
         }
@@ -159,6 +173,12 @@ namespace suds
             ItemTypes = new List<ItemType>{
                 new ItemType{
                     Name = "Weapon"
+                },
+                new ItemType{
+                    Name = "TorsoArmor"
+                },
+                new ItemType{
+                    Name = "FootArmor"
                 },
                 new ItemType{
                     Name = "Potion"

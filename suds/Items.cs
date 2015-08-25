@@ -31,7 +31,7 @@ namespace suds
         public ItemRarity Rarity { get; set; }
         public ItemType Type { get; set; }
         
-        public List<ItemProp> SpecialProps { get; set; }
+        public List<SpecialProp> SpecialProps { get; set; }
         public CombatModifiers CombatMods { get; set; }
 
         public Action AttackAction {get; set; }
@@ -44,7 +44,7 @@ namespace suds
             ID = suds.NextItemID++;
             Rarity = ItemRarity.Trash;
             Type = new ItemType();
-            SpecialProps = new List<ItemProp>();
+            SpecialProps = new List<SpecialProp>();
             CombatMods = new CombatModifiers();
 	    }
 
@@ -93,16 +93,16 @@ namespace suds
     {
         public int ID { get; set; }
         public string Name { get; set; }
-        public List<ItemProp> BaseProps { get; set; }
+        public List<SpecialProp> BaseProps { get; set; }
 
         public ItemType()
         {
             ID = suds.NextItemTypeID++;
-            BaseProps = new List<ItemProp>();
+            BaseProps = new List<SpecialProp>();
         }
     }
 
-    public class ItemProp
+    public class SpecialProp
     {
         public int ID { get; set; }
         public string Name { get; set; }
@@ -113,9 +113,9 @@ namespace suds
         public string StrVal { get; set; }
         public bool? BoolVal { get; set; }
 
-        public ItemProp()
+        public SpecialProp()
         {
-            ID = suds.NextItemPropID++;
+            ID = suds.NextSpecialPropID++;
         }
 
     }

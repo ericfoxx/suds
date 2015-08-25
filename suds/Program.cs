@@ -62,7 +62,8 @@ namespace suds
 
         public static int NextItemID = 0;
         public static int NextItemTypeID = 0;
-        public static int NextItemPropID = 0;
+        public static int NextSpecialPropID = 0;
+        public static int NextXPNodeID = 0;
 
         public static string Prompt()
         {

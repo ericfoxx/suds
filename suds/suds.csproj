@@ -59,6 +59,7 @@
   <ItemGroup>
     <Compile Include="Combat.cs" />
     <Compile Include="Environment.cs" />
+    <Compile Include="Experience.cs" />
     <Compile Include="Items.cs" />
     <Compile Include="Beings.cs" />
     <Compile Include="Parser.cs" />
